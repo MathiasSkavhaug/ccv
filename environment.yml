@@ -3,3 +3,6 @@ dependencies:
  - flake8
  - pytest
  - pre-commit
+ - twarc
+ - tqdm
+ - geopy
