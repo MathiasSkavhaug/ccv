@@ -1,8 +1,8 @@
 """ Contains methods used to hydrate a list of twitter ids.
 
     typical usage:
-        python hydrate.py --i "./CMU_MisCov19_dataset.csv" --c "status_id" --b
-            "./bearer_token.txt" --o "./CMU_MisCov19_dataset_hydrated.csv"
+        python tweet_hydrator.py --i "./CMU_MisCov19_dataset.csv" --c "status_id"
+            --b "./bearer_token.txt" --o "./CMU_MisCov19_dataset_hydrated.csv"
 """
 
 
@@ -29,7 +29,6 @@ REMOVE_LIST = [
     "reply_settings",
     "context_annotations",
     "entities",
-    "id",
     "attachments",
     "geo",
 ]
@@ -100,13 +99,15 @@ def hydrate_tweets_wrapper(
         bearer_token = f.readline().rstrip()
 
     twarc2 = Twarc2(bearer_token=bearer_token)
-    data = pd.read_csv(input_path)
+    input = pd.read_csv(input_path).rename(columns={column_name: "tweet_id"})
 
-    ids = data[column_name].to_list()
+    ids = input.tweet_id.to_list()
 
     output = hydrate_tweets(twarc2, ids)
 
-    output.to_csv(output_path)
+    output = pd.merge(input, output, how="left", on="tweet_id")
+
+    output.to_csv(output_path, index=False)
 
 
 def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
@@ -136,9 +137,9 @@ def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
         udfs.append(pd.DataFrame(batch.get("includes", {}).get("users", {})))
         pdfs.append(pd.DataFrame(batch.get("includes", {}).get("places", {})))
 
-    tdf = pd.concat(tdfs)
-    udf = pd.concat(udfs)
-    pdf = pd.concat(pdfs)
+    tdf = pd.concat(tdfs)  # tweet dataframe
+    udf = pd.concat(udfs)  # user dataframe
+    pdf = pd.concat(pdfs)  # place dataframe
 
     geocode = RateLimiter(
         Nominatim(user_agent="COVID_FND").geocode, min_delay_seconds=1
@@ -172,6 +173,8 @@ def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
     tdf = pd.concat([tdf, location], axis=1)
 
     tdf.text = tdf.text.apply(lambda x: " ".join(x.split()))
+    tdf = tdf.rename(columns={"id": "tweet_id"})
+    tdf.tweet_id = pd.to_numeric(tdf.tweet_id)
 
     return tdf
 
