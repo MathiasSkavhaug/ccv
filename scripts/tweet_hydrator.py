@@ -1,8 +1,11 @@
 """ Contains methods used to hydrate a list of twitter ids.
 
     typical usage:
-        python tweet_hydrator.py --i "./CMU_MisCov19_dataset.csv" --c "status_id"
-            --b "./bearer_token.txt" --o "./CMU_MisCov19_dataset_hydrated.csv"
+        python tweet_hydrator.py
+            --i "../data/CMU_MisCov19_dataset.csv"
+            --c "status_id"
+            --b "../data/bearer_token.txt"
+            --o "../data/CMU_MisCov19_dataset_hydrated.csv"
 """
 
 
@@ -13,7 +16,7 @@ from math import isnan
 from tqdm import tqdm
 from twarc import Twarc2
 from typing import Dict, List
-from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 
@@ -55,7 +58,12 @@ def process_tweet(tweet: Dict[str, any]) -> Dict[str, any]:
     return tweet
 
 
-def location_lookup(location: str, geocode: RateLimiter) -> Dict[str, str]:
+def location_lookup(
+    location: str,
+    geocode: RateLimiter,
+    cache: Dict[str, Dict[str, str]],
+    verbose: bool = False,
+) -> Dict[str, str]:
     """ Given a string, assumed to be a location, tries to find the actual
     location.
 
@@ -63,6 +71,9 @@ def location_lookup(location: str, geocode: RateLimiter) -> Dict[str, str]:
         location (str): String to be looked up.
         geocode (RateLimiter): Wrapped Nominatim().geocode, geocoder for
         OpenStreetMap data.
+        cache (Dict[str, Dict[str, str]]): Cache for location lookup.
+        verbose (bool, optional): Print out failed location lookups.
+            Defaults to False.
 
     Returns:
         Dict[str, str]: A dictionary on the form "location_type: value".
@@ -73,26 +84,43 @@ def location_lookup(location: str, geocode: RateLimiter) -> Dict[str, str]:
     if type(location) != str and isnan(location):
         return None
     location = location.replace("ÜT: ", "")  # Makes coordinates detectable
-    try:
-        location = geocode(location, language="en", addressdetails=True)
-        if location:
-            location = location.raw.get("address", {})
-    except GeocoderTimedOut:
-        location = None
-    return location
+
+    if location in cache:
+        location_res = cache[location]
+    else:
+        try:
+            location_res = geocode(location, language="en", addressdetails=True)
+            if location_res:
+                location_res = location_res.raw.get("address", {})
+        except (
+            GeocoderTimedOut,
+            GeocoderUnavailable,
+        ):
+            location_res = None
+        if verbose and location_res is None:
+            print(f'\n\nLookup failed for "{location}".\n')
+
+        cache[location] = location_res
+    return location_res
 
 
 def hydrate_tweets_wrapper(
-    input_path: str, column_name: str, bearer_token_path: str, output_path: str
+    input_path: str,
+    column_name: str,
+    bearer_token_path: str,
+    output_path: str,
+    verbose: bool = False,
 ) -> None:
     """ Wrapper for hydrate_tweets.
 
     Args:
-        input_path (str): Path of input csv file containing twitter ids
-        column_name (str): Name of input file column containing the twitter ids
-        bearer_token_path (str): Path of file containing the twitter bearer
-            token
-        output_path (str): Path of output csv file containing hydrated tweets
+        input_path (str): Path of input csv file containing twitter ids.
+        column_name (str): Name of input file column containing the
+            twitter ids.
+        bearer_token_path (str): Path of file containing the twitter bearer.
+            token.
+        output_path (str): Path of output csv file containing hydrated tweets.
+        verbose (bool, optional): Defaults to False.
     """
 
     with open(bearer_token_path, "r") as f:
@@ -103,19 +131,22 @@ def hydrate_tweets_wrapper(
 
     ids = input.tweet_id.to_list()
 
-    output = hydrate_tweets(twarc2, ids)
+    output = hydrate_tweets(twarc2, ids, verbose)
 
     output = pd.merge(input, output, how="left", on="tweet_id")
 
     output.to_csv(output_path, index=False)
 
 
-def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
+def hydrate_tweets(
+    twarc2: Twarc2, twitter_ids: List[int], verbose: bool = False
+) -> pd.DataFrame:
     """ Hydrates the tweets in twitter_ids.
 
     Args:
         twarc2 (Twarc2): The client for the Twitter v2 API.
         twitter_ids (List[int]): List of twitter ids.
+        verbose (bool, optional): Defaults to False.
 
     Returns:
         pd.DataFrame: Pandas dataframe containing the hydrated tweets, in the
@@ -142,15 +173,20 @@ def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
     pdf = pd.concat(pdfs)  # place dataframe
 
     geocode = RateLimiter(
-        Nominatim(user_agent="COVID_FND").geocode, min_delay_seconds=1
+        Nominatim(user_agent="COVID_FND").geocode,
+        min_delay_seconds=1,
+        max_retries=0,
+        swallow_exceptions=False,
     )
+
+    location_cache = {}  # as per Nominatim usage policy
 
     if not udf.empty:
         udf = udf[["id", "location"]].rename(columns={"id": "author_id"})
         udf = udf.drop_duplicates(subset="author_id")
         tdf = pd.merge(tdf, udf, on="author_id", how="left")
         location = tdf.location.progress_apply(
-            lambda x: location_lookup(x, geocode)
+            lambda x: location_lookup(x, geocode, location_cache, verbose)
         )
         tdf = tdf.drop(axis=1, columns=["location"])
 
@@ -161,7 +197,7 @@ def hydrate_tweets(twarc2: Twarc2, twitter_ids: List[int]) -> pd.DataFrame:
         pdf = pdf.drop_duplicates(subset="place_id")
         tdf = pd.merge(tdf, pdf, on="place_id", how="left")
         geo_location = tdf.geo_location.progress_apply(
-            lambda x: location_lookup(x, geocode)
+            lambda x: location_lookup(x, geocode, location_cache, verbose)
         )
         location = location.fillna(geo_location)
         tdf = tdf.drop(axis=1, columns=["place_id", "geo_location"])
@@ -213,6 +249,12 @@ if __name__ == "__main__":
         dest="output_path",
         help="Path of output csv file containing hydrated tweets",
     )
+    parser.add_argument(
+        "-v",
+        action="store_true",
+        dest="verbose",
+        help="Enable additional printouts.",
+    )
     args = parser.parse_args()
 
     hydrate_tweets_wrapper(
@@ -220,4 +262,5 @@ if __name__ == "__main__":
         args.id_column_name,
         args.bearer_token_path,
         args.output_path,
+        args.verbose,
     )
