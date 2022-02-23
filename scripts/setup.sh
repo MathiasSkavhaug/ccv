@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Sets up the necessary environment 
-# and starts indexing the cord-19 dataset.
+# starts indexing the cord-19 dataset
+# and downloads other data.
 
 sudo apt update
 sudo apt install maven
@@ -29,3 +30,6 @@ python script/get_checkpoint.py longformer_large_science
 python script/get_checkpoint.py scifact
 
 cd ..
+
+mkdir data
+wget https://github.com/asaakyan/covidfact/raw/main/COVIDFACT_dataset.jsonl -O ./data/covidfact.jsonl
