@@ -1,0 +1,2 @@
+#!/bin/bash
+python longchecker/longchecker/predict.py --checkpoint_path=longchecker/checkpoints/scifact.ckpt --input_file=data/predict_claims.jsonl --corpus_file=data/predict_corpus.jsonl --output_file=data/predict_result.jsonl
