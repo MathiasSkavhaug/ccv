@@ -33,3 +33,8 @@ cd ..
 
 mkdir data
 wget https://github.com/asaakyan/covidfact/raw/main/COVIDFACT_dataset.jsonl -O ./data/covidfact.jsonl
+
+# modify longchecker/longchecker/data.py in order to add truncation when tokenizing
+sed -i "s/self.tokenizer(claim + self.tokenizer.eos_token + cited_text)/self.tokenizer(claim + self.tokenizer.eos_token + cited_text, truncation=True)/g" longchecker/longchecker/data.py
+# truncated abstracts might fail sanity check
+sed -i "s/assert len(abstract_sent_idx) == len(sentences)/# assert len(abstract_sent_idx) == len(sentences)/g" longchecker/longchecker/data.py

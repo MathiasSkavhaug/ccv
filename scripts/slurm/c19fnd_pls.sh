@@ -1,16 +1,17 @@
 #!/bin/bash
 #SBATCH --gres=gpu:1
 #SBATCH --partition=gpuA100 
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --job-name=c19fnd_pls
 #SBATCH --output=c19fnd_pls.out
  
 # Activate environment
 uenv verbose cuda-11.4 cudnn-11.4-8.2.4
-uenv miniconda-python39
-echo "TEST1"
-conda activate c19fnd
-echo "TEST2"
+uenv miniconda3-py38
 
-# Run the Python script that uses the GPU
-./scripts/predict.sh
+conda activate longchecker
+python longchecker/longchecker/predict.py \
+    --checkpoint_path="longchecker/checkpoints/scifact.ckpt" \
+    --input_file="data/predict_claims.jsonl" \
+    --corpus_file="data/predict_corpus.jsonl" \
+    --output_file="data/predict_result.jsonl"

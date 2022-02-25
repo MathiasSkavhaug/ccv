@@ -1,4 +1,4 @@
-""" Takes a .jsonl file containing claims and outputs two files required for
+"""Takes a .jsonl file containing claims and outputs two files required for
 prediction using longchecker.
 
 example usage:
@@ -30,11 +30,21 @@ def get_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--index", type=str, help="index file path")
-    parser.add_argument("--k", type=int, help="number of documenst to return per claim")
-    parser.add_argument("--input", type=str, help="input file containing claims")
-    parser.add_argument("--claim_col", type=str, help="name of claim column in dataset")
-    parser.add_argument("--output_claims", type=str, help="claim output file path")
-    parser.add_argument("--output_corpus", type=str, help="corpus output file path")
+    parser.add_argument(
+        "--k", type=int, help="number of documenst to return per claim"
+    )
+    parser.add_argument(
+        "--input", type=str, help="input file containing claims"
+    )
+    parser.add_argument(
+        "--claim_col", type=str, help="name of claim column in dataset"
+    )
+    parser.add_argument(
+        "--output_claims", type=str, help="claim output file path"
+    )
+    parser.add_argument(
+        "--output_corpus", type=str, help="corpus output file path"
+    )
 
     return parser.parse_args()
 
@@ -75,7 +85,10 @@ def get_sentences(hit: Dict[str, any]) -> List[str]:
     abstract = extract_nested_value(json.loads(hit.raw), "abstract")
     if type(abstract) is list:
         abstract = " ".join([x["text"] for x in abstract])
-    return re.split("(?<=[\.\?\!])\s*", abstract)[:-1]
+    sentences = re.split("(?<=[\.\?\!])\s*", abstract)
+    if sentences[-1] == "":
+        return sentences[:-1]
+    return sentences
 
 
 def process_hits(hits: Dict[str, any]) -> List[Dict[str, any]]:
@@ -95,13 +108,13 @@ def process_hits(hits: Dict[str, any]) -> List[Dict[str, any]]:
     for k, v in doc_dict.items():
         if k == "":
             continue
-        docs.append(
-            {
-                "doc_id": int(k),
-                "title": extract_nested_value(json.loads(v.raw), "title"),
-                "abstract": get_sentences(v),
-            }
-        )
+        doc = {
+            "doc_id": int(k),
+            "title": extract_nested_value(json.loads(v.raw), "title"),
+            "abstract": get_sentences(v),
+        }
+        if len(doc["abstract"]):
+            docs.append(doc)
     return docs
 
 

@@ -1,7 +1,7 @@
 """Calculates metrics based upon majority vote claim-evidence pair aggregation.
 
     example usage:
-        python agg_sm.py --gt "data/covidfact.jsonl" \
+        python scripts/agg_sm.py --gt "data/covidfact.jsonl" \
             --p "data/predict_result.jsonl" \
             --gt_lab_t "SUPPORTED" \
             --gt_lab_f "REFUTED" \
@@ -10,7 +10,7 @@
 
 import argparse
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 
 def get_args() -> argparse.Namespace:
@@ -45,14 +45,17 @@ def main() -> None:
     claims = pd.read_json(args.gt, lines=True)
     predictions = pd.read_json(args.p, lines=True).set_index("id")
 
-    pmap = {"SUPPORT": 1, "REFUTE": 0}
+    pmap = {"SUPPORT": 1, "CONTRADICT": 0}
     tmap = {args.gt_lab_t: 1, args.gt_lab_f: 0}
     plabels, tlabels = [], []
     for index, row in predictions.iterrows():
+        if not row.iloc[0]:
+            continue
         labels = [pmap[v["label"]] for x in row for v in x.values()]
         plabels.append(1 if sum(labels) / len(labels) >= 0.5 else 0)
         tlabels.append(tmap[claims[args.gt_col].iloc[index]])
 
+    print(confusion_matrix(tlabels, plabels))
     print(f"Accuracy: {accuracy_score(tlabels, plabels)}")
     print(f"F1:       {f1_score(tlabels, plabels)}")
 
