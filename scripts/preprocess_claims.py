@@ -14,8 +14,8 @@ example usage:
 
 import argparse
 import json
+import nltk
 import pandas as pd
-import re
 from pathlib import Path
 from typing import Any, List, TextIO, Dict
 from pyserini.search import SimpleSearcher
@@ -45,6 +45,9 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--output_corpus", type=str, help="corpus output file path"
     )
+    parser.add_argument(
+        "--delimiter", type=str, help="if not json, which delimiter"
+    )
 
     return parser.parse_args()
 
@@ -72,11 +75,15 @@ def extract_nested_value(d: Dict, key: Any) -> Any:
     return value
 
 
-def get_sentences(hit: Dict[str, any]) -> List[str]:
+def get_sentences(
+    hit: Dict[str, any], tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer
+) -> List[str]:
     """Retrieves sentences from a hit's abstract.
 
     Args:
         hit (Dict[str, any]): The hit to retrieve abstract sentences from.
+        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer): 
+            Splits text into sentences.
 
     Returns:
         List[str]: The sentences from a hit's abstract.
@@ -85,17 +92,18 @@ def get_sentences(hit: Dict[str, any]) -> List[str]:
     abstract = extract_nested_value(json.loads(hit.raw), "abstract")
     if type(abstract) is list:
         abstract = " ".join([x["text"] for x in abstract])
-    sentences = re.split("(?<=[\.\?\!])\s*", abstract)
-    if sentences[-1] == "":
-        return sentences[:-1]
-    return sentences
+    return tokenizer.tokenize(abstract)
 
 
-def process_hits(hits: Dict[str, any]) -> List[Dict[str, any]]:
+def process_hits(
+    hits: Dict[str, any], tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer
+) -> List[Dict[str, any]]:
     """Processes the hits from a query.
 
     Args:
         hits (Dict[str, any]): The hits from a query.
+        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer): 
+            Splits text into sentences.
 
     Returns:
         List[Dict[str, any]]: List of documents.
@@ -111,7 +119,7 @@ def process_hits(hits: Dict[str, any]) -> List[Dict[str, any]]:
         doc = {
             "doc_id": int(k),
             "title": extract_nested_value(json.loads(v.raw), "title"),
-            "abstract": get_sentences(v),
+            "abstract": get_sentences(v, tokenizer),
         }
         if len(doc["abstract"]):
             docs.append(doc)
@@ -164,8 +172,16 @@ def main() -> None:
     """
 
     args = get_args()
+    nltk.download("punkt")
+    tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
     searcher = SimpleSearcher(args.index)
-    claims = pd.read_json(Path(args.input), lines=True)
+    file_type = args.input.split(".")[-1]
+    if file_type == "jsonl":
+        claims = pd.read_json(Path(args.input), lines=True)
+    elif file_type == "json":
+        claims = pd.read_json(Path(args.input))
+    else:
+        claims = pd.read_csv(Path(args.input), delimiter=args.delimiter)
     written_docs = []
     with open(Path(args.output_claims), "w") as cl, open(
         Path(args.output_corpus), "w"
@@ -173,7 +189,7 @@ def main() -> None:
         for index, row in claims.iterrows():
             claim = row[args.claim_col]
             hits = searcher.search(claim, args.k)
-            docs = process_hits(hits)
+            docs = process_hits(hits, tokenizer)
             write_claim(cl, index, claim, docs)
             for d in docs:
                 write_doc(co, d, written_docs)

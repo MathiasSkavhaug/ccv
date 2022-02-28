@@ -15,6 +15,7 @@ conda install -c conda-forge openjdk=11 -y
 python -m pip install torch==1.8.1 torchvision==0.9.1 torchaudio===0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 conda install -c conda-forge faiss -y
 python -m pip install pyserini
+python -m pip install nltk
 
 conda create --name longchecker python=3.8 conda-build -y
 conda activate longchecker
