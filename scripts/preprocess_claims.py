@@ -1,4 +1,4 @@
-"""Takes a .jsonl file containing claims and outputs two files required for
+"""Takes a file containing claims and outputs two files required for
 prediction using longchecker.
 
 example usage:
@@ -16,6 +16,7 @@ import argparse
 import json
 import nltk
 import pandas as pd
+import re
 from pathlib import Path
 from typing import Any, List, TextIO, Dict
 from pyserini.search import SimpleSearcher
@@ -82,7 +83,7 @@ def get_sentences(
 
     Args:
         hit (Dict[str, any]): The hit to retrieve abstract sentences from.
-        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer): 
+        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
             Splits text into sentences.
 
     Returns:
@@ -102,15 +103,20 @@ def process_hits(
 
     Args:
         hits (Dict[str, any]): The hits from a query.
-        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer): 
+        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
             Splits text into sentences.
 
     Returns:
         List[Dict[str, any]]: List of documents.
     """
 
+    def get_doc_id(hit):
+        id = extract_nested_value(hit, "s2_id")
+        if id:
+            return
+
     doc_dict = {
-        extract_nested_value(json.loads(h.raw), "s2_id"): h for h in hits
+        get_doc_id(json.loads(h.raw)): h for h in hits
     }  # remove duplicates
     docs = []
     for k, v in doc_dict.items():
@@ -120,6 +126,12 @@ def process_hits(
             "doc_id": int(k),
             "title": extract_nested_value(json.loads(v.raw), "title"),
             "abstract": get_sentences(v, tokenizer),
+            "journal": json.loads(v.raw)
+            .get("csv_metadata", {})
+            .get("journal", "unavailable"),
+            "publish_time": json.loads(v.raw)
+            .get("csv_metadata", {})
+            .get("publish_time", "unavailable"),
         }
         if len(doc["abstract"]):
             docs.append(doc)
@@ -168,8 +180,7 @@ def write_doc(
 
 
 def main() -> None:
-    """Executes the script.
-    """
+    """Executes the script."""
 
     args = get_args()
     nltk.download("punkt")
