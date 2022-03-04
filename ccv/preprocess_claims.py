@@ -19,8 +19,9 @@ import pandas as pd
 from pathlib import Path
 from typing import Any, List, TextIO, Dict
 from tqdm import tqdm
-from pyserini.search import SimpleSearcher
+from difflib import SequenceMatcher
 from util import get_corpusid
+from pyserini.search import SimpleSearcher
 
 
 nunavail = 0  # number of docs not having the corpusid initially available.
@@ -65,7 +66,7 @@ def get_sentences(
     """Retrieves sentences from a hit's abstract.
 
     Args:
-        hit (Dict[str, any]): The metadata associated with the hit to retrieve
+        hit (Dict[str, Any]): The metadata associated with the hit to retrieve
             abstract sentences from.
         tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
             Splits text into sentences.
@@ -112,25 +113,59 @@ def get_doc_id(metadata: Dict[str, str]) -> str:
                 if id:
                     break
     if not id:
-        missed += 1
+        nmissed += 1
     return id
 
 
+def remove_duplicates(docs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Removes duplicate papers from docs.
+
+    Args:
+        docs (Dict[str, Any]): The documents containing possible duplicates.
+
+    Returns:
+        Dict[str, Any]: List of unique documents.
+    """
+
+    duplicates = []
+    for i in range(len(docs)):
+        for j in range(i+1,len(docs)):
+            t1 = docs[i]["title"].lower()
+            t2 = docs[j]["title"].lower()
+            r = SequenceMatcher(a=t1,b=t2).ratio()
+            if r >= 0.825:
+                duplicates.append((i,j))
+    remove = []
+    for i1, i2 in duplicates:
+        if len(docs[i1]["abstract"]) > len(docs[i2]["abstract"]):
+            remove.append(i2)
+            docs[i1]["aliases"].append(docs[i2]["doc_id"])
+        else:
+            remove.append(i1)
+            docs[i2]["aliases"].append(docs[i1]["doc_id"])
+    remove = list(set(remove))
+    remove = sorted(remove, reverse=True)
+    for i in remove:
+        docs.pop(i)
+
+    return docs
+
+
 def process_hits(
-    hits: Dict[str, any], tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer
-) -> List[Dict[str, any]]:
+    hits: Dict[str, Any], tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer
+) -> List[Dict[str, Any]]:
     """Processes the hits from a query.
 
     Args:
-        hits (Dict[str, any]): The hits from a query.
+        hits (Dict[str, Any]): The hits from a query.
         tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
             Splits text into sentences.
 
     Returns:
-        List[Dict[str, any]]: List of documents.
+        List[Dict[str, Any]]: List of documents.
     """
 
-    doc_dict = {  # also removes duplicates
+    doc_dict = {  # also removes duplicate corpusids
         get_doc_id(json.loads(h.raw)["csv_metadata"]): h for h in hits
     }
     docs = []
@@ -147,11 +182,12 @@ def process_hits(
         }
         if len(doc["abstract"]):
             docs.append(doc)
+    docs = remove_duplicates(docs)
     return docs
 
 
 def write_claim(
-    file: TextIO, claim_id: int, claim: str, docs: List[Dict[str, any]]
+    file: TextIO, claim_id: int, claim: str, docs: List[Dict[str, Any]]
 ) -> None:
     """Writes the given claim to the given file.
 
@@ -159,7 +195,7 @@ def write_claim(
         file (TextIO): File to write to.
         claim_id (int): Id of given claim.
         claim (str): The claim to write to file.
-        docs (List[Dict[str, any]]): The documents retrieved for the given
+        docs (List[Dict[str, Any]]): The documents retrieved for the given
             claim.
     """
 
@@ -176,13 +212,13 @@ def write_claim(
 
 
 def write_doc(
-    file: TextIO, doc: Dict[str, any], written_docs: List[int]
+    file: TextIO, doc: Dict[str, Any], written_docs: List[int]
 ) -> None:
     """Writes the given document representation to the given file.
 
     Args:
         file (TextIO): File to write to.
-        doc (Dict[str, any]): Document to write to file.
+        doc (Dict[str, Any]): Document to write to file.
         written_docs (List[int]): Document already written to file.
     """
 
