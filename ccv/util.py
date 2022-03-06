@@ -27,7 +27,7 @@ def get_request(url: str) -> Dict[str, Any]:
 
     r = requests.get(url)
     if r.status_code == 429 or r.status_code == 403:
-        print("Waiting 5 minutes...")
+        print("Rate limited, waiting 5 minutes...")
         time.sleep(60 * 5)
         return get_request(url)
     if r.status_code != 200:
