@@ -129,20 +129,20 @@ def remove_duplicates(docs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     duplicates = []
     for i in range(len(docs)):
-        for j in range(i+1,len(docs)):
+        for j in range(i + 1, len(docs)):
             t1 = docs[i]["title"].lower()
             t2 = docs[j]["title"].lower()
-            r = SequenceMatcher(a=t1,b=t2).ratio()
+            r = SequenceMatcher(a=t1, b=t2).ratio()
             if r >= 0.825:
-                duplicates.append((i,j))
+                duplicates.append((i, j))
     remove = []
     for i1, i2 in duplicates:
-        if len(docs[i1]["abstract"]) > len(docs[i2]["abstract"]):
-            remove.append(i2)
-            docs[i1]["aliases"].append(docs[i2]["doc_id"])
-        else:
-            remove.append(i1)
-            docs[i2]["aliases"].append(docs[i1]["doc_id"])
+        b = len(docs[i1]["abstract"]) > len(docs[i2]["abstract"])
+        k = i1 if b else i2
+        r = i2 if b else i1
+        remove.append(r)
+        docs[k]["aliases"].append(docs[r]["doc_id"])
+        docs[k]["aliases"].extend(docs[r]["aliases"])
     remove = list(set(remove))
     remove = sorted(remove, reverse=True)
     for i in remove:
@@ -179,6 +179,7 @@ def process_hits(
             "abstract": get_sentences(metadata, tokenizer),
             "journal": metadata["journal"],
             "publish_time": metadata["publish_time"],
+            "aliases": [],
         }
         if len(doc["abstract"]):
             docs.append(doc)
