@@ -4,11 +4,22 @@ prediction using longchecker.
 example usage:
     python ccv/preprocess_claims.py \
         --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
-        --k 20 \
+        --nkeep 20 \
+        --ninit 100 \
         --input "./data/covidfact.jsonl" \
         --claim_col "claim" \
         --output_claims "./data/predict_claims.jsonl" \
-        --output_corpus "./data/predict_corpus.jsonl"
+        --output_corpus "./data/predict_corpus.jsonl" \
+        --rerank
+
+    Without re-ranking:
+    python ccv/preprocess_claims.py \
+        --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
+        --nkeep 20 \
+        --input "./data/covidfact.jsonl" \
+        --claim_col "claim" \
+        --output_claims "./data/predict_claims.jsonl" \
+        --output_corpus "./data/predict_corpus.jsonl" \
 """
 
 
@@ -17,11 +28,12 @@ import json
 import nltk
 import pandas as pd
 from pathlib import Path
-from typing import Any, List, TextIO, Dict
 from tqdm import tqdm
+from util
+from typing import Any, List, TextIO, Dict
 from difflib import SequenceMatcher
-from util import get_corpusid
-from pyserini.search import SimpleSearcher
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from pyserini.search.lucene import LuceneSearcher
 
 
 nunavail = 0  # number of docs not having the corpusid initially available.
@@ -36,24 +48,44 @@ def get_args() -> argparse.Namespace:
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--index", type=str, help="index file path")
     parser.add_argument(
-        "--k", type=int, help="number of documents to return per claim"
+        "--index", type=str, help="index file path", required=True
     )
     parser.add_argument(
-        "--input", type=str, help="input file containing claims"
+        "--nkeep",
+        type=int,
+        help="number of documents to keep per claim",
+        required=True,
     )
     parser.add_argument(
-        "--claim_col", type=str, help="name of claim column in dataset"
+        "--ninit", type=int, help="number of documents to return per claim"
     )
     parser.add_argument(
-        "--output_claims", type=str, help="claim output file path"
+        "--input", type=str, help="input file containing claims", required=True
     )
     parser.add_argument(
-        "--output_corpus", type=str, help="corpus output file path"
+        "--claim_col",
+        type=str,
+        help="name of claim column in dataset",
+        required=True,
+    )
+    parser.add_argument(
+        "--output_claims",
+        type=str,
+        help="claim output file path",
+        required=True,
+    )
+    parser.add_argument(
+        "--output_corpus",
+        type=str,
+        help="corpus output file path",
+        required=True,
     )
     parser.add_argument(
         "--delimiter", type=str, help="if not json, which delimiter"
+    )
+    parser.add_argument(
+        "--rerank", action="store_true", help="if given, perform re-ranking"
     )
 
     return parser.parse_args()
@@ -109,7 +141,7 @@ def get_doc_id(metadata: Dict[str, str]) -> str:
         ]:
             id = metadata[key]
             if id:
-                id = get_corpusid(id, type)
+                id = util.get_corpusid(id, type)
                 if id:
                     break
     if not id:
@@ -187,6 +219,33 @@ def process_hits(
     return docs
 
 
+def rerank(
+    claim: str,
+    docs: List[Dict[str, Any]],
+    model: AutoModelForSeq2SeqLM,
+    tokenizer: AutoTokenizer,
+    nkeep: int,
+) -> List[Dict[str, Any]]:
+    """Takes a claim and the associated retrieved evidence documents, reranks them, and returns the top nkeep.
+
+    Args:
+        claim (str): The claim.
+        docs (List[Dict[str, Any]]): The lists of documents.
+        model (AutoModelForSeq2SeqLM): The model to use for re-ranking.
+        tokenizer (AutoTokenizer): The model's tokenizer.
+        nkeep (int): How many of the top documents to return.
+
+    Returns:
+        List[Dict[str, Any]]: Reranked and (possibly) truncated list of documents.
+    """
+
+    texts = [" ".join(d["abstract"]) for d in docs]
+    scores = [util.rerank(claim, [t,], model, tokenizer, "cuda:0") for t in texts]  # todo: implement batching.
+    sdocs = sorted(zip(docs, scores), lambda x: x[-1], reverse=True)
+    docs, _ = zip(*sdocs)
+    return list(docs)[:nkeep]
+    
+
 def write_claim(
     file: TextIO, claim_id: int, claim: str, docs: List[Dict[str, Any]]
 ) -> None:
@@ -232,9 +291,12 @@ def main() -> None:
     """Executes the script."""
 
     args = get_args()
+
     nltk.download("punkt")
-    tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
-    searcher = SimpleSearcher(args.index)
+    stokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+
+    searcher = LuceneSearcher(args.index)
+
     file_type = args.input.split(".")[-1]
     if file_type == "jsonl":
         claims = pd.read_json(Path(args.input), lines=True)
@@ -242,14 +304,24 @@ def main() -> None:
         claims = pd.read_json(Path(args.input))
     else:
         claims = pd.read_csv(Path(args.input), delimiter=args.delimiter)
+
+    if args.rerank:
+        model_name = "castorini/monot5-base-med-msmarco"
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
     written_docs = []
     with open(Path(args.output_claims), "w") as cl, open(
         Path(args.output_corpus), "w"
     ) as co:
         for index, row in tqdm(claims.iterrows(), total=claims.shape[0]):
             claim = row[args.claim_col]
-            hits = searcher.search(claim, args.k)
-            docs = process_hits(hits, tokenizer)
+            hits = searcher.search(
+                claim, args.ninit if args.ninit else args.nkeep
+            )
+            docs = process_hits(hits, stokenizer)
+            if args.rerank:
+                docs = rerank(claim, docs, model, tokenizer, args.nkeep)
             write_claim(cl, index, claim, docs)
             for d in docs:
                 write_doc(co, d, written_docs)
