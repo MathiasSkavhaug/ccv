@@ -34,6 +34,8 @@ cd ..
 
 mkdir data
 wget https://github.com/asaakyan/covidfact/raw/main/COVIDFACT_dataset.jsonl -O ./data/covidfact.jsonl
+bash longchecker/script/get_data.sh
+cat data/scifact/claims* > data/scifact_claims.jsonl
 
 # modify longchecker/longchecker/data.py in order to add truncation when tokenizing
 sed -i "s/self.tokenizer(claim + self.tokenizer.eos_token + cited_text)/self.tokenizer(claim + self.tokenizer.eos_token + cited_text, truncation=True)/g" longchecker/longchecker/data.py
