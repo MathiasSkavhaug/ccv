@@ -11,6 +11,7 @@ example usage:
         --output_claims "./data/predict_claims.jsonl" \
         --output_corpus "./data/predict_corpus.jsonl" \
         --rerank
+        --batch_size 100
 
     Without re-ranking:
     python ccv/preprocess_claims.py \
@@ -86,6 +87,9 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--rerank", action="store_true", help="if given, perform re-ranking"
+    )
+    parser.add_argument(
+        "--batch_size", type=int, help="batch-size to use when re-ranking"
     )
 
     return parser.parse_args()
@@ -225,7 +229,7 @@ def rerank(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     nkeep: int,
-    batch_size: int = 100,
+    batch_size: int = 64,
 ) -> List[Dict[str, Any]]:
     """Takes a claim and the associated retrieved evidence documents, reranks them, and returns the top nkeep.
 
@@ -329,7 +333,9 @@ def main() -> None:
             )
             docs = process_hits(hits, stokenizer)
             if args.rerank:
-                docs = rerank(claim, docs, model, tokenizer, args.nkeep)
+                docs = rerank(
+                    claim, docs, model, tokenizer, args.nkeep, args.batch_size
+                )
             write_claim(cl, index, claim, docs)
             for d in docs:
                 write_doc(co, d, written_docs)

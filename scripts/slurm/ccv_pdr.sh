@@ -19,3 +19,4 @@ python ccv/preprocess_claims.py \
     --output_claims "./data/predict_claims.jsonl" \
     --output_corpus "./data/predict_corpus.jsonl" \
     --rerank
+    --batch_size 100
