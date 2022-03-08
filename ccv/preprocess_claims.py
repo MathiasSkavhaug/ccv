@@ -31,7 +31,7 @@ import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 import util
-from typing import Any, List, TextIO, Dict
+from typing import Any, List, TextIO, Dict, Generator
 from difflib import SequenceMatcher
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from pyserini.search.lucene import LuceneSearcher
@@ -132,10 +132,9 @@ def get_doc_id(metadata: Dict[str, str]) -> str:
     id = metadata["s2_id"]
     if not id:
         nunavail += 1
-        for (
-            key,
-            type,
-        ) in [  # look through the other associated ids and use them to try and find the corpusid.
+        # look through the other associated ids and use them to try
+        # and find the corpusid.
+        for (key, type,) in [
             ("arxiv_id", "arxiv"),
             ("doi", "doi"),
             ("pubmed_id", "pubmed"),
@@ -231,7 +230,8 @@ def rerank(
     nkeep: int,
     batch_size: int = 64,
 ) -> List[Dict[str, Any]]:
-    """Takes a claim and the associated retrieved evidence documents, reranks them, and returns the top nkeep.
+    """Takes a claim and the associated retrieved evidence documents,
+    re-ranks them, and returns the top nkeep.
 
     Args:
         claim (str): The claim.
@@ -242,12 +242,13 @@ def rerank(
         batch_size (int): Batch size. Default 64.
 
     Returns:
-        List[Dict[str, Any]]: Reranked and (possibly) truncated list of documents.
+        List[Dict[str, Any]]: Reranked and (possibly) truncated list of
+            documents.
     """
 
-    def chunks(l, k):
-        for i in range(0, len(l), k):
-            yield l[i : i + k]
+    def chunks(lst: List[str], k: int) -> Generator[List[str]]:
+        for i in range(0, len(lst), k):
+            yield lst[i : i + k]
 
     texts = [" ".join(d["abstract"]) for d in docs]
     scores = []
