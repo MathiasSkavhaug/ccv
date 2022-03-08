@@ -110,6 +110,9 @@ def rerank(
         List[float]: Returns a list of scores.
     """
 
+    model.to(device)
+    model.eval()
+
     data = [f"'Query: {query} Document: {text} Relevant:'" for text in texts]
     input = tokenizer.batch_encode_plus(
         data,

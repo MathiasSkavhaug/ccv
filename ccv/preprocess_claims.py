@@ -29,7 +29,7 @@ import nltk
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
-from util
+import util
 from typing import Any, List, TextIO, Dict
 from difflib import SequenceMatcher
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -225,6 +225,7 @@ def rerank(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     nkeep: int,
+    batch_size: int = 100,
 ) -> List[Dict[str, Any]]:
     """Takes a claim and the associated retrieved evidence documents, reranks them, and returns the top nkeep.
 
@@ -234,17 +235,24 @@ def rerank(
         model (AutoModelForSeq2SeqLM): The model to use for re-ranking.
         tokenizer (AutoTokenizer): The model's tokenizer.
         nkeep (int): How many of the top documents to return.
+        batch_size (int): Batch size. Default 64.
 
     Returns:
         List[Dict[str, Any]]: Reranked and (possibly) truncated list of documents.
     """
 
+    def chunks(l, k):
+        for i in range(0, len(l), k):
+            yield l[i : i + k]
+
     texts = [" ".join(d["abstract"]) for d in docs]
-    scores = [util.rerank(claim, [t,], model, tokenizer, "cuda:0") for t in texts]  # todo: implement batching.
-    sdocs = sorted(zip(docs, scores), lambda x: x[-1], reverse=True)
+    scores = []
+    for batch in chunks(texts, batch_size):
+        scores.append(util.rerank(claim, batch, model, tokenizer, "cuda:0"))
+    sdocs = sorted(zip(docs, scores), key=lambda x: x[-1], reverse=True)
     docs, _ = zip(*sdocs)
     return list(docs)[:nkeep]
-    
+
 
 def write_claim(
     file: TextIO, claim_id: int, claim: str, docs: List[Dict[str, Any]]
