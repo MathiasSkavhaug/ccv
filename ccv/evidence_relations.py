@@ -52,7 +52,7 @@ def main():
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
     with open(args.ocorpus, "w") as ecorpus, open(args.oclaims, "w") as eclaims:
-        for index, row in tqdm(
+        for claim_num, row in tqdm(
             predictions.iterrows(), total=predictions.shape[0]
         ):
             evidence_dict = row.iloc[0]
@@ -60,7 +60,7 @@ def main():
                 continue
 
             info = {}
-            info["claim"] = claims.loc[index][0]
+            info["claim"] = claims.loc[claim_num][0]
             info["docs"] = []
             for doc_id, evidence in evidence_dict.items():
                 doc = corpus.loc[int(doc_id)]
@@ -80,27 +80,34 @@ def main():
 
             docs = sorted(info["docs"], key=lambda x: x["publish_time"])
 
-            for i, d1 in enumerate(docs):
-                for j, e1 in enumerate(d1["evidence"]):
+            for doc_num, d1 in enumerate(docs):
+                for evidence_num, e1 in enumerate(d1["evidence"]):
                     ecorpus.write(
                         json.dumps(
                             {
-                                "doc_id": int(f"{index+1}0{i+1}0{j+1}"),
+                                "doc_id": int(
+                                    f"{claim_num+1}0{doc_num+1}0{evidence_num+1}"
+                                ),
+                                "title": None,
                                 "abstract": [e1],
                             }
                         )
                         + "\n"
                     )
 
-                    for k, d2 in enumerate(docs[i + 1 :]):
-                        for l in range(len(d2["evidence"])):
+                    for older_doc_num, d2 in enumerate(docs[doc_num + 1 :]):
+                        for older_evidence_num in range(len(d2["evidence"])):
                             eclaims.write(
                                 json.dumps(
                                     {
-                                        "id": int(f"{index+1}0{i+1}0{j+1}"),
+                                        "id": int(
+                                            f"{claim_num+1}0{doc_num+1}0{evidence_num+1}0{doc_num+1+older_doc_num+1}0{older_evidence_num+1}"
+                                        ),
                                         "claim": e1,
                                         "doc_ids": [
-                                            int(f"{index+1}0{i+1+k+1}0{l+1}")
+                                            int(
+                                                f"{claim_num+1}0{doc_num+1+older_doc_num+1}0{older_evidence_num+1}"
+                                            )
                                         ],
                                     }
                                 )
