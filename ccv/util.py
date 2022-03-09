@@ -1,9 +1,7 @@
 import json
 import requests
 import time
-import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 
 type_map = {
@@ -86,69 +84,6 @@ def extract_nested_value(d: Dict, key: Any) -> Any:
         if value:
             return value
     return value
-
-
-# Code derived from parts of https://github.com/castorini/pygaggle,
-# mainly https://github.com/castorini/pygaggle/blob/dcfaacbff62298da39098ff0d296dc541fadcc9c/pygaggle/rerank/transformer.py#L98
-def rerank(
-    query: str,
-    texts: List[str],
-    model: AutoModelForSeq2SeqLM,
-    tokenizer: AutoTokenizer,
-    device: str,
-) -> List[float]:
-    """Takes a ranking and re-ranks it using a specified model.
-
-    Args:
-        query (str): The claim.
-        rankings (List[str]): Initial texts to rank.
-        model (AutoModelForSeq2SeqLM): Model to use for re-ranking
-        tokenizer (AutoTokenizer): Tokenizer to tokenize the text.
-        device (str): Device to use.
-
-    Returns:
-        List[float]: Returns a list of scores.
-    """
-
-    model.to(device)
-    model.eval()
-
-    data = [f"'Query: {query} Document: {text} Relevant:'" for text in texts]
-    input = tokenizer.batch_encode_plus(
-        data,
-        return_attention_mask=True,
-        padding="longest",
-        truncation=True,
-        return_tensors="pt",
-        max_length=512,
-    )
-    input["tokens"] = list(map(tokenizer.tokenize, data))
-    input_ids = input["input_ids"].to(device)
-    attention = input["attention_mask"].to(device)
-
-    with torch.no_grad():
-        decode_ids = torch.full(
-            (input_ids.size(0), 1),
-            model.config.decoder_start_token_id,
-            dtype=torch.long,
-        ).to(device)
-        input = model.get_encoder()(input_ids, attention_mask=attention)
-        input = model.prepare_inputs_for_generation(
-            decode_ids,
-            encoder_outputs=input,
-            past=None,
-            attention_mask=attention,
-            use_cache=True,
-        )
-        outputs = model(**input)
-        scores = outputs[0][:, -1, :]
-
-    token_false_id = tokenizer.get_vocab()["▁false"]
-    token_true_id = tokenizer.get_vocab()["▁true"]
-    scores = scores[:, [token_false_id, token_true_id]]
-    scores = torch.nn.functional.log_softmax(scores, dim=1)
-
-    return scores[:, 1].tolist()
 
 
 if __name__ == "__main__":
