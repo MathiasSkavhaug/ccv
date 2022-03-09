@@ -10,7 +10,8 @@ example usage:
         --claim_col "claim" \
         --output_claims "./data/predict_claims.jsonl" \
         --output_corpus "./data/predict_corpus.jsonl" \
-        --rerank
+        --rerank \
+        --device "cuda:0" \
         --batch_size 100
 
     Without re-ranking:
@@ -88,6 +89,9 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--rerank", action="store_true", help="if given, perform re-ranking"
+    )
+    parser.add_argument(
+        "--device", type=str, help="device to use for re-ranking"
     )
     parser.add_argument(
         "--batch_size", type=int, help="batch-size to use when re-ranking"
@@ -229,6 +233,7 @@ def rerank(
     model: AutoModelForSeq2SeqLM,
     tokenizer: AutoTokenizer,
     nkeep: int,
+    device: str,
     batch_size: int = 64,
 ) -> List[Dict[str, Any]]:
     """Takes a claim and the associated retrieved evidence documents,
@@ -240,6 +245,7 @@ def rerank(
         model (AutoModelForSeq2SeqLM): The model to use for re-ranking.
         tokenizer (AutoTokenizer): The model's tokenizer.
         nkeep (int): How many of the top documents to return.
+        device: The device to run the model on.
         batch_size (int): Batch size. Default 64.
 
     Returns:
@@ -247,14 +253,14 @@ def rerank(
             documents.
     """
 
-    def chunks(lst: List[str], k: int) -> Generator[List[str]]:
+    def chunks(lst: List[str], k: int) -> Generator[List[str], None, None]:
         for i in range(0, len(lst), k):
             yield lst[i : i + k]
 
     texts = [" ".join(d["abstract"]) for d in docs]
     scores = []
     for batch in chunks(texts, batch_size):
-        scores.extend(perform_rerank(claim, batch, model, tokenizer, "cuda:0"))
+        scores.extend(perform_rerank(claim, batch, model, tokenizer, device))
     sdocs = sorted(zip(docs, scores), key=lambda x: x[-1], reverse=True)
     docs, _ = zip(*sdocs)
     return list(docs)[:nkeep]
@@ -399,14 +405,20 @@ def main() -> None:
             docs = process_hits(hits, stokenizer)
             if args.rerank:
                 docs = rerank(
-                    claim, docs, model, tokenizer, args.nkeep, args.batch_size
+                    claim,
+                    docs,
+                    model,
+                    tokenizer,
+                    args.nkeep,
+                    args.device,
+                    args.batch_size,
                 )
             write_claim(cl, index, claim, docs)
             for d in docs:
                 write_doc(co, d, written_docs)
 
     print("Done")
-    print("Number of documents processed:", len(written_docs))
+    print("Number of unique documents kept:", len(written_docs))
     print("Number of documents without corpusid:", nunavail)
     print("Number of documents where corpusid not resolved:", nmissed)
 
