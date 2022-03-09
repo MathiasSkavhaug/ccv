@@ -9,7 +9,7 @@
 uenv verbose cuda-11.4 cudnn-11.4-8.2.4
 uenv miniconda3-py38
 
-conda activate pyserini
+conda activate ccv
 python ccv/preprocess_claims.py \
     --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
     --nkeep 20 \
