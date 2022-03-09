@@ -95,18 +95,22 @@ def main():
                         + "\n"
                     )
 
-                    for older_doc_num, d2 in enumerate(docs[doc_num + 1 :]):
-                        for older_evidence_num in range(len(d2["evidence"])):
+                    for other_doc_num, d2 in enumerate(docs):
+                        if (
+                            other_doc_num == doc_num
+                        ):  # No need to check a document's evidences against each other.
+                            continue
+                        for other_evidence_num in range(len(d2["evidence"])):
                             eclaims.write(
                                 json.dumps(
                                     {
                                         "id": int(
-                                            f"{claim_num+1}0{doc_num+1}0{evidence_num+1}0{doc_num+1+older_doc_num+1}0{older_evidence_num+1}"
+                                            f"{claim_num+1}0{doc_num+1}0{evidence_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
                                         ),
                                         "claim": e1,
                                         "doc_ids": [
                                             int(
-                                                f"{claim_num+1}0{doc_num+1+older_doc_num+1}0{older_evidence_num+1}"
+                                                f"{claim_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
                                             )
                                         ],
                                     }
@@ -115,4 +119,5 @@ def main():
                             )
 
 
-main()
+if __name__ == "__main__":
+    main()
