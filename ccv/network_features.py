@@ -241,4 +241,5 @@ def main():
             f.write(json.dumps(info, indent=4) + "\n")
 
 
-main()
+if __name__ == "__main__":
+    main()
