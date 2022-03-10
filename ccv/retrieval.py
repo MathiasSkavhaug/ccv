@@ -31,7 +31,7 @@ import nltk
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
-import util
+import utility
 import torch
 from typing import Any, List, TextIO, Dict, Generator
 from difflib import SequenceMatcher
@@ -149,7 +149,7 @@ def get_doc_id(metadata: Dict[str, str]) -> str:
         ]:
             id = metadata[key]
             if id:
-                id = util.get_corpusid(id, type)
+                id = utility.get_corpusid(id, type)
                 if id:
                     break
     if not id:
@@ -370,10 +370,12 @@ def write_doc(
         written_docs.append(doc["doc_id"])
 
 
-def main() -> None:
-    """Executes the script."""
+def retrieval(args: argparse.Namespace) -> None:
+    """Performs the actual retrival based on the given arguments.
 
-    args = get_args()
+    Args:
+        args (argparse.Namespace): The provided arguments.
+    """
 
     nltk.download("punkt")
     stokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
@@ -417,10 +419,20 @@ def main() -> None:
             for d in docs:
                 write_doc(co, d, written_docs)
 
+        del model
+        torch.cuda.empty_cache()
+
     print("Done")
     print("Number of unique documents kept:", len(written_docs))
     print("Number of documents without corpusid:", nunavail)
     print("Number of documents where corpusid not resolved:", nmissed)
+
+
+def main() -> None:
+    """Executes the script."""
+
+    args = get_args()
+    retrieval(args)
 
 
 if __name__ == "__main__":

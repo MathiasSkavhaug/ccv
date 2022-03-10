@@ -46,10 +46,12 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main():
-    """Executes the script."""
+def produce_files(args: argparse.Namespace) -> None:
+    """Produces the files needed to predict the stances between the evidences.
 
-    args = get_args()
+    Args:
+        args (argparse.Namespace): The provided arguments.
+    """
 
     claims = pd.read_json(args.claims, lines=True).set_index("id")
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
@@ -131,6 +133,13 @@ def main():
                             claim_count += 1
             with open(args.omap, "w", encoding="utf-8") as f:
                 f.write(json.dumps(claim_map))
+
+
+def main():
+    """Executes the script."""
+
+    args = get_args()
+    produce_files(args)
 
 
 if __name__ == "__main__":

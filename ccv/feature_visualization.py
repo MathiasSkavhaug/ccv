@@ -19,7 +19,7 @@ import pandas as pd
 import statistics
 from tqdm import tqdm
 from typing import Dict, Any
-from util import get_request
+from utility import get_request
 
 
 def get_args() -> argparse.Namespace:
@@ -200,20 +200,22 @@ def get_aut_links(dinfo: Dict[str, any]) -> Dict[str, any]:
     return d
 
 
-def get_claim_dict(
+def get_evi_links(
     evidence_relations: pd.DataFrame, emap: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Loads the evidence stances from the given datastructures.
 
     Args:
-        evidence_relations (pd.DataFrame): Result from longchecker ran on the output from stance_evidence.py
-        emap (Dict[str, Any]): Mapping claim ids from output of stance_evidence.py to various information.
+        evidence_relations (pd.DataFrame): Result from longchecker
+            ran on the output from stance_evidence.py
+        emap (Dict[str, Any]): Mapping claim ids from output o
+            stance_evidence.py to various information.
 
     Returns:
         Dict[str, Any]: Dict containing the evidence stances for each claim.
     """
 
-    claim_dict = {}
+    evi_links = {}
     for _, er in evidence_relations.iterrows():
         evidence = er["evidence"]
         if not evidence:
@@ -221,27 +223,31 @@ def get_claim_dict(
         label = evidence[list(evidence.keys())[0]]["label"]
         d = emap[str(er["id"])]
         d["label"] = label
-        claim_dict[d["claim_id"]] = d
-        claim_dict[d["claim_id"]].pop("claim_id")
-    return claim_dict
+        id = d.pop("claim_id")
+        if id not in evi_links:
+            evi_links[id] = []
+        evi_links[id].append(d)
+    return evi_links
 
 
-def main():
-    """Executes the script."""
+def get_features(args: argparse.Namespace) -> None:
+    """Extracts features used for visualization.
 
-    args = get_args()
+    Args:
+        args (argparse.Namespace): The provided arguments.
+    """
 
     claims = pd.read_json(args.claims, lines=True).set_index("id")
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
-    if args.relations and args.emap:
+    if args.erelations and args.emap:
         evidence_relations = pd.read_json(args.erelations, lines=True)
         with open(args.emap) as f:
             emap = json.load(f)
 
     author_map = {}
-    claim_dict = get_claim_dict(evidence_relations, emap)
+    evi_links = get_evi_links(evidence_relations, emap)
 
     with open(args.output, "w", encoding="utf-8") as f:
         for index, row in tqdm(
@@ -276,10 +282,17 @@ def main():
                 info["docs"][doc_id] = d
             info["alinks"] = get_aut_links(info["docs"])
             info["rlinks"] = get_ref_links(info["docs"])
-            if args.relations and args.emap:
-                info["elinks"] = claim_dict[info["claim_id"]]
+            if args.erelations and args.emap:
+                info["elinks"] = evi_links[info["claim_id"]]
 
             f.write(json.dumps(info) + "\n")
+
+
+def main():
+    """Executes the script."""
+
+    args = get_args()
+    get_features(args)
 
 
 if __name__ == "__main__":
