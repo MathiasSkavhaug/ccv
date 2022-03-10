@@ -10,7 +10,7 @@ uenv verbose cuda-11.4 cudnn-11.4-8.2.4
 uenv miniconda3-py38
 
 conda activate ccv
-python ccv/preprocess_claims.py \
+python ccv/retrieval.py \
     --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
     --k 20 \
     --input "./data/covidfact.jsonl" \
