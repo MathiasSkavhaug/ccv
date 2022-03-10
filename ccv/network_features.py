@@ -4,10 +4,12 @@ also for the various relationsships between them.
 
 example usage:
     python ccv/network_features.py \
-        --output "./data/evidence_summary.json" \
+        --output "./data/evidence_summary.jsonl" \
         --claims "./data/predict_claims.jsonl" \
         --corpus "./data/predict_corpus.jsonl" \
-        --predictions "./data/predict_result.jsonl"
+        --predictions "./data/predict_result.jsonl" \
+        --erelations "./data/erelations.jsonl" \
+        --emap "./data/emap.json"
 """
 
 
@@ -16,7 +18,7 @@ import json
 import pandas as pd
 import statistics
 from tqdm import tqdm
-from typing import Dict
+from typing import Dict, Any
 from util import get_request
 
 
@@ -35,6 +37,10 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--predictions", type=str, help="predictions file", required=True
     )
+    parser.add_argument(
+        "--erelations", type=str, help="evidence relations file"
+    )
+    parser.add_argument("--emap", type=str, help="evidence map file")
 
     return parser.parse_args()
 
@@ -194,6 +200,22 @@ def get_aut_links(dinfo: Dict[str, any]) -> Dict[str, any]:
     return d
 
 
+def get_claim_dict(
+    evidence_relations: pd.DataFrame, emap: Dict[str, Any]
+) -> Dict[str, Any]:
+    claim_dict = {}
+    for _, er in evidence_relations.iterrows():
+        evidence = er["evidence"]
+        if not evidence:
+            continue
+        label = evidence[list(evidence.keys())[0]]["label"]
+        d = emap[str(er["id"])]
+        d["label"] = label
+        claim_dict[d["claim_id"]] = d
+        claim_dict[d["claim_id"]].pop("claim_id")
+    return claim_dict
+
+
 def main():
     """Executes the script."""
 
@@ -203,7 +225,13 @@ def main():
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
+    if args.relations and args.emap:
+        evidence_relations = pd.read_json(args.erelations, lines=True)
+        with open(args.emap) as f:
+            emap = json.load(f)
+
     author_map = {}
+    claim_dict = get_claim_dict(evidence_relations, emap)
 
     with open(args.output, "w", encoding="utf-8") as f:
         for index, row in tqdm(
@@ -215,6 +243,7 @@ def main():
 
             info = {}
             info["claim"] = claims.loc[index][0]
+            info["claim_id"] = index
             info["docs"] = {}
             for doc_id, evidence in evidence_dict.items():
                 doc = corpus.loc[int(doc_id)]
@@ -237,8 +266,10 @@ def main():
                 info["docs"][doc_id] = d
             info["alinks"] = get_aut_links(info["docs"])
             info["rlinks"] = get_ref_links(info["docs"])
+            if args.relations and args.emap:
+                info["elinks"] = claim_dict[info["claim_id"]]
 
-            f.write(json.dumps(info, indent=4) + "\n")
+            f.write(json.dumps(info) + "\n")
 
 
 if __name__ == "__main__":

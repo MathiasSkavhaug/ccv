@@ -6,6 +6,7 @@ example usage:
     python ccv/evidence_relations.py \
         --oclaims "./data/eclaims.jsonl" \
         --ocorpus "./data/ecorpus.jsonl" \
+        --omap "./data/emap.json" \
         --claims "./data/predict_claims.jsonl" \
         --corpus "./data/predict_corpus.jsonl" \
         --predictions "./data/predict_result.jsonl"
@@ -32,6 +33,9 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--ocorpus", type=str, help="output corpus file", required=True
+    )
+    parser.add_argument(
+        "--omap", type=str, help="output claim map file", required=True
     )
     parser.add_argument("--claims", type=str, help="claims file", required=True)
     parser.add_argument("--corpus", type=str, help="corpus file", required=True)
@@ -80,6 +84,8 @@ def main():
 
             docs = sorted(info["docs"], key=lambda x: x["publish_time"])
 
+            claim_count = 0
+            claim_map = {}
             for doc_num, d1 in enumerate(docs):
                 for evidence_num, e1 in enumerate(d1["evidence"]):
                     ecorpus.write(
@@ -104,9 +110,7 @@ def main():
                             eclaims.write(
                                 json.dumps(
                                     {
-                                        "id": int(
-                                            f"{claim_num+1}0{doc_num+1}0{evidence_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
-                                        ),
+                                        "id": claim_count,
                                         "claim": e1,
                                         "doc_ids": [
                                             int(
@@ -117,6 +121,16 @@ def main():
                                 )
                                 + "\n"
                             )
+                            claim_map[claim_count] = {
+                                "claim_id": claim_num,
+                                "fdoc_id": d1["id"],
+                                "fdoc_e_num": evidence_num,
+                                "sdoc_id": d2["id"],
+                                "sdoc_e_num": other_evidence_num,
+                            }
+                            claim_count += 1
+            with open(args.omap, "w", encoding="utf-8") as f:
+                f.write(json.dumps(claim_map))
 
 
 if __name__ == "__main__":
