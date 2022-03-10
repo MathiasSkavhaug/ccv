@@ -2,7 +2,7 @@
 prediction using longchecker.
 
 example usage:
-    python ccv/preprocess_claims.py \
+    python ccv/retrieval.py \
         --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
         --nkeep 20 \
         --ninit 100 \
@@ -15,7 +15,7 @@ example usage:
         --batch_size 100
 
     Without re-ranking:
-    python ccv/preprocess_claims.py \
+    python ccv/retrieval.py \
         --index "./anserini/indexes/lucene-index-cord19-abstract-2022-02-07" \
         --nkeep 20 \
         --input "./data/covidfact.jsonl" \

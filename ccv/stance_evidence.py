@@ -3,7 +3,7 @@ outputs the files needed to run longchecker for stance detection between
 evidence sentences for each claim.
 
 example usage:
-    python ccv/evidence_relations.py \
+    python ccv/stance_evidence.py \
         --oclaims "./data/eclaims.jsonl" \
         --ocorpus "./data/ecorpus.jsonl" \
         --omap "./data/emap.json" \

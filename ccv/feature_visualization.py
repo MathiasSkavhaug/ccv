@@ -3,7 +3,7 @@ for each claim extracts additional information for each evidence document but
 also for the various relationsships between them.
 
 example usage:
-    python ccv/network_features.py \
+    python ccv/feature_visualization.py \
         --output "./data/evidence_summary.jsonl" \
         --claims "./data/predict_claims.jsonl" \
         --corpus "./data/predict_corpus.jsonl" \
@@ -203,6 +203,16 @@ def get_aut_links(dinfo: Dict[str, any]) -> Dict[str, any]:
 def get_claim_dict(
     evidence_relations: pd.DataFrame, emap: Dict[str, Any]
 ) -> Dict[str, Any]:
+    """Loads the evidence stances from the given datastructures.
+
+    Args:
+        evidence_relations (pd.DataFrame): Result from longchecker ran on the output from stance_evidence.py
+        emap (Dict[str, Any]): Mapping claim ids from output of stance_evidence.py to various information.
+
+    Returns:
+        Dict[str, Any]: Dict containing the evidence stances for each claim.
+    """
+
     claim_dict = {}
     for _, er in evidence_relations.iterrows():
         evidence = er["evidence"]
