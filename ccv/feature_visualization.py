@@ -13,6 +13,64 @@ example usage:
 """
 
 
+"""
+get_features() saved dict structure:
+    "claim": str,
+    "docs": {
+        corpusid: {
+            "label": str,
+            "evidence": [str],
+            "aliases": [int],
+            "pinfo": {
+                "citationCount": int,
+                "influentialCitationCount": int
+            },
+            "ainfo": {
+                "authors": [str],
+                "numAuthors": int,
+                "maxPaperCount": int,
+                "medianPaperCount": int,
+                "maxCitationCount": int,
+                "medianCitationCount": int,
+                "maxHIndex": int,
+                "medianHIndex": int
+            },
+            "rinfo": {
+                corpusid: {
+                    "isInfluential": bool,
+                    "intents": [str],
+                    "contexts": [str]
+                }
+                }
+            },
+            "publish_time": str,
+            "journal": str
+        }
+    "alinks": {
+        "doc": corpusid,
+        "common": list[str]
+    },
+    "rlinks": {
+        corpusid: [
+            {
+                "reference": corpusid,
+                "isInfluential": bool,
+                "intent": [str]
+            }
+        ]
+    }
+    "elinks": {
+        id: {
+            claim_id: int, 
+            'fdoc_id': corpusid, 
+            'fdoc_e_num': int, 
+            'sdoc_id': corpusid, 
+            'sdoc_e_num': int,
+        },
+    }
+"""
+
+
 import argparse
 import json
 import pandas as pd
