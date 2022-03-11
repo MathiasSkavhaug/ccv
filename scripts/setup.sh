@@ -36,3 +36,7 @@ sed -i "s/self.tokenizer(claim + self.tokenizer.eos_token + cited_text)/self.tok
 sed -i "s/assert len(abstract_sent_idx) == len(sentences)/# assert len(abstract_sent_idx) == len(sentences)/g" longchecker/longchecker/data.py
 # "args = get_args()" should not be in get_predictions(args)
 sed -i '0,/args = get_args()/{/args = get_args()/d}' longchecker/longchecker/predict.py
+
+# allow device to be cpu.
+sed -i 's/f\"cuda:{args.device}\"/f\"{args.device}\"/g' longchecker/longchecker/predict.py
+sed -i 's/(\"--device\", default=0, type=int)/(\"--device\", default=\"cuda:0\", type=str)/g' longchecker/longchecker/predict.py

@@ -35,15 +35,22 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--exe_id", type=str, help="unique execution id.", required=True
     )
+    parser.add_argument(
+        "--device",
+        type=str,
+        help="device to run the models on.",
+        default="cuda:0",
+    )
     return parser.parse_args()
 
 
-def run_retrieval(claim: str, exe_id: str) -> None:
+def run_retrieval(claim: str, exe_id: str, device: str) -> None:
     """Runs retrieval on the provided claim.
 
     Args:
         claim (str): The claim.
         exe_id (str): The execution id.
+        device (str): The device to run the model on.
     """
 
     input = f"./data/{exe_id}_claim.jsonl"
@@ -59,18 +66,19 @@ def run_retrieval(claim: str, exe_id: str) -> None:
     args.output_claims = f"data/{exe_id}_ds_claims.jsonl"
     args.output_corpus = f"data/{exe_id}_ds_corpus.jsonl"
     args.rerank = True
-    args.device = "cuda:0"
+    args.device = device
     args.batch_size = 100
 
     retrieval(args)
 
 
-def stance_document(exe_id: str) -> None:
+def stance_document(exe_id: str, device: str) -> None:
     """Runs stance prediction for each retrieved evidence for the
     current execution instance.
 
     Args:
         exe_id (str): The execution id.
+        device (str): The device to run the model on.
     """
 
     args = argparse.Namespace()
@@ -79,7 +87,7 @@ def stance_document(exe_id: str) -> None:
     args.corpus_file = f"data/{exe_id}_ds_corpus.jsonl"
     args.output_file = f"data/{exe_id}_ds_result.jsonl"
     args.batch_size = 1
-    args.device = 0
+    args.device = device
     args.num_workers = 4
     args.no_nei = False
     args.force_rationale = False
@@ -91,11 +99,12 @@ def stance_document(exe_id: str) -> None:
     write_jsonl(data, args.output_file)
 
 
-def stance_evidence(exe_id: str) -> None:
+def stance_evidence(exe_id: str, device: str) -> None:
     """Produces the files needed to predict the stances between the evidences.
 
     Args:
         exe_id (str): The execution id.
+        device (str): The device to run the model on.
     """
 
     output_claims = f"data/{exe_id}_es_claims.jsonl"
@@ -117,7 +126,7 @@ def stance_evidence(exe_id: str) -> None:
     args.corpus_file = output_corpus
     args.output_file = f"data/{exe_id}_es_result.jsonl"
     args.batch_size = 1
-    args.device = 0
+    args.device = device
     args.num_workers = 4
     args.no_nei = False
     args.force_rationale = False
@@ -147,16 +156,17 @@ def feature_visualization(exe_id: str) -> None:
     get_features(args)
 
 
-def run_query(claim: str, exe_id: str) -> None:
+def run_query(claim: str, exe_id: str, device: str) -> None:
     """Runs the pipeline on the provided claim.
 
     Args:
         claim (str): The claim.
         exe_id (str): The execution id.
+        device (str): The device to run the model on.
     """
-    run_retrieval(claim, exe_id)
-    stance_document(exe_id)
-    stance_evidence(exe_id)
+    run_retrieval(claim, exe_id, device)
+    stance_document(exe_id, device)
+    stance_evidence(exe_id, device)
     feature_visualization(exe_id)
 
 
@@ -164,7 +174,7 @@ def main() -> None:
     """Executes the script."""
 
     args = get_args()
-    run_query(args.claim, args.exe_id)
+    run_query(args.claim, args.exe_id, args.device)
 
 
 if __name__ == "__main__":
