@@ -4,7 +4,7 @@ also for the various relationsships between them.
 
 example usage:
     python ccv/feature_visualization.py \
-        --output "./data/evidence_summary.jsonl" \
+        --output "./data/graphs.jsonl" \
         --claims "./data/predict_claims.jsonl" \
         --corpus "./data/predict_corpus.jsonl" \
         --predictions "./data/predict_result.jsonl" \
@@ -288,6 +288,106 @@ def get_evi_links(
     return evi_links
 
 
+def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
+    """Creates a graph representation from the claim information dictionary.
+
+    Args:
+        dinfo (Dict[str, any]): Dictionary containing various claim related
+            evidence.
+
+    Returns:
+        Dict[str, Dict[str, any]]: The graph as a dictionary.
+    """
+
+    lmap = {"SUPPORT": 1, "CONTRADICT": 0}
+    nodes, links = [], []
+
+    # Add claim node
+    nodes.append(
+        {"id": "Claim", "group": 0, "text": dinfo["claim"],}
+    )
+    for id, doc in dinfo["docs"].items():
+        # Add document node
+        nodes.append(
+            {"id": id, "group": 1,}
+        )
+        # Add claim-document link
+        links.append(
+            {
+                "source": id,
+                "target": "Claim",
+                "value": 1,
+                "label": lmap[doc["label"]],
+            }
+        )
+        for i, e in enumerate(doc["evidence"]):
+            # Add evidence node
+            nodes.append(
+                {"id": f"{id}_{i}", "group": 3,}
+            )
+            # Add document-evidence link
+            links.append(
+                {
+                    "source": f"{id}_{i}",
+                    "target": id,
+                    "value": 1,
+                    "label": lmap[doc["label"]],
+                }
+            )
+    for k, rlinks in dinfo["rlinks"].items():
+        # Add document-document link
+        for rlink in rlinks:
+            links.append(
+                {
+                    "source": k,
+                    "target": rlink["reference"],
+                    "value": 1,
+                    "label": 2,
+                }
+            )
+    for elink in dinfo["elinks"]:
+        # Add evidence-evidence link
+        links.append(
+            {
+                "source": f"{elink['fdoc_id']}_{elink['fdoc_e_num']}",
+                "target": f"{elink['sdoc_id']}_{elink['sdoc_e_num']}",
+                "label": lmap[elink["label"]],
+            }
+        )
+
+    d = {}
+    # Only keep links in one direction.
+    for i, link in enumerate(links):
+        target = link["source"]
+        source = link["target"]
+        label = link["label"]
+
+        # Only continue if evidence-evidence link
+        if "_" not in target:
+            d[(target, source)] = str(label)
+            continue
+
+        d[(target, source)] = str(label)
+
+        ele1 = d.get((target, source), {})
+        ele2 = d.get((source, target), {})
+
+        if ele1 and ele2:
+            # if labels do not agree, remove both
+            if ele1 != ele2:
+                d.pop((target, source))
+                d.pop((source, target))
+            # keep first one
+            else:
+                d.pop((target, source))
+
+    links = [{"source": s, "target": t, "label": l} for (s, t), l in d.items()]
+
+    graph = {"nodes": nodes, "links": links}
+
+    return graph
+
+
 def get_features(args: argparse.Namespace) -> None:
     """Extracts features used for visualization.
 
@@ -343,7 +443,8 @@ def get_features(args: argparse.Namespace) -> None:
             if args.erelations and args.emap:
                 info["elinks"] = evi_links.get(info["claim_id"], {})
 
-            f.write(json.dumps(info) + "\n")
+            graph = create_graph(info)
+            f.write(json.dumps(graph) + "\n")
 
 
 def main():
