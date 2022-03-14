@@ -57,7 +57,9 @@ def produce_files(args: argparse.Namespace) -> None:
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
-    with open(args.ocorpus, "w") as ecorpus, open(args.oclaims, "w") as eclaims:
+    with open(args.ocorpus, "w", encoding="utf-8") as ecorpus, open(
+        args.oclaims, "w", encoding="utf-8"
+    ) as eclaims:
         for claim_num, row in tqdm(
             predictions.iterrows(), total=predictions.shape[0]
         ):

@@ -51,9 +51,7 @@ def get_args() -> argparse.Namespace:
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--index", type=str, help="index file path", required=True
-    )
+    parser.add_argument("--index", type=str, help="index file path", required=True)
     parser.add_argument(
         "--nkeep",
         type=int,
@@ -84,15 +82,11 @@ def get_args() -> argparse.Namespace:
         help="corpus output file path",
         required=True,
     )
-    parser.add_argument(
-        "--delimiter", type=str, help="if not json, which delimiter"
-    )
+    parser.add_argument("--delimiter", type=str, help="if not json, which delimiter")
     parser.add_argument(
         "--rerank", action="store_true", help="if given, perform re-ranking"
     )
-    parser.add_argument(
-        "--device", type=str, help="device to use for re-ranking"
-    )
+    parser.add_argument("--device", type=str, help="device to use for re-ranking")
     parser.add_argument(
         "--batch_size", type=int, help="batch-size to use when re-ranking"
     )
@@ -354,9 +348,7 @@ def write_claim(
     )
 
 
-def write_doc(
-    file: TextIO, doc: Dict[str, Any], written_docs: List[int]
-) -> None:
+def write_doc(file: TextIO, doc: Dict[str, Any], written_docs: List[int]) -> None:
     """Writes the given document representation to the given file.
 
     Args:
@@ -396,14 +388,12 @@ def retrieval(args: argparse.Namespace) -> None:
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
     written_docs = []
-    with open(Path(args.output_claims), "w") as cl, open(
-        Path(args.output_corpus), "w"
+    with open(Path(args.output_claims), "w", encoding="utf-8") as cl, open(
+        Path(args.output_corpus), "w", encoding="utf-8"
     ) as co:
         for index, row in tqdm(claims.iterrows(), total=claims.shape[0]):
             claim = row[args.claim_col]
-            hits = searcher.search(
-                claim, args.ninit if args.ninit else args.nkeep
-            )
+            hits = searcher.search(claim, args.ninit if args.ninit else args.nkeep)
             docs = process_hits(hits, stokenizer)
             if args.rerank:
                 docs = rerank(

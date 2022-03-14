@@ -82,7 +82,7 @@ def stance_document(exe_id: str, device: str) -> None:
     """
 
     args = argparse.Namespace()
-    args.checkpoint_path = "longchecker/checkpoints/scifact.ckpt"
+    args.checkpoint_path = "longchecker/checkpoints/covidfact.ckpt"
     args.input_file = f"data/{exe_id}_ds_claims.jsonl"
     args.corpus_file = f"data/{exe_id}_ds_corpus.jsonl"
     args.output_file = f"data/{exe_id}_ds_result.jsonl"
@@ -121,7 +121,7 @@ def stance_evidence(exe_id: str, device: str) -> None:
     produce_files(args)
 
     args = argparse.Namespace()
-    args.checkpoint_path = "longchecker/checkpoints/scifact.ckpt"
+    args.checkpoint_path = "longchecker/checkpoints/covidfact.ckpt"
     args.input_file = output_claims
     args.corpus_file = output_corpus
     args.output_file = f"data/{exe_id}_es_result.jsonl"

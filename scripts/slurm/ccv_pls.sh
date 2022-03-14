@@ -11,7 +11,7 @@ uenv miniconda3-py38
 
 conda activate ccv
 python longchecker/longchecker/predict.py \
-    --checkpoint_path="longchecker/checkpoints/scifact.ckpt" \
+    --checkpoint_path="longchecker/checkpoints/covidfact.ckpt" \
     --input_file="data/predict_claims.jsonl" \
     --corpus_file="data/predict_corpus.jsonl" \
     --output_file="data/predict_result.jsonl" \

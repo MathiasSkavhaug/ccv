@@ -301,7 +301,7 @@ def get_features(args: argparse.Namespace) -> None:
 
     if args.erelations and args.emap:
         evidence_relations = pd.read_json(args.erelations, lines=True)
-        with open(args.emap) as f:
+        with open(args.emap, "r", encoding="utf-8") as f:
             emap = json.load(f)
 
     author_map = {}
@@ -341,7 +341,7 @@ def get_features(args: argparse.Namespace) -> None:
             info["alinks"] = get_aut_links(info["docs"])
             info["rlinks"] = get_ref_links(info["docs"])
             if args.erelations and args.emap:
-                info["elinks"] = evi_links[info["claim_id"]]
+                info["elinks"] = evi_links.get(info["claim_id"], {})
 
             f.write(json.dumps(info) + "\n")
 

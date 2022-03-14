@@ -11,5 +11,5 @@ uenv miniconda3-py38
 
 conda activate ccv
 python ccv/run_query.py \
-    --claim "SARS-CoV-2 binds ACE2 receptor to gain entry into cells" \
+    --claim "The coronavirus cannot thrive in warmer climates." \
     --exe_id "a8f5f167f44f4964e6c998dee827110c"

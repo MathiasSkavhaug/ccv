@@ -24,7 +24,7 @@ git checkout a77f4b869cc9155132fb395d82d1f84b2e93a195 # make sure repository is 
 cd longchecker/
 
 python script/get_checkpoint.py longformer_large_science
-python script/get_checkpoint.py scifact
+python script/get_checkpoint.py covidfact
 
 cd ..
 
