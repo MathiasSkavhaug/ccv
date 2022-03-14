@@ -1,15 +1,18 @@
+// Based upon https://bl.ocks.org/mbostock/4062045
+
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
-var color = d3.scaleOrdinal(d3.schemeCategory20);
+var color = d3.scaleOrdinal(d3.schemeDark2);
+var link_color = d3.scaleOrdinal(["#b81809", "#09bd1b", "#cf620e"]).domain(["0","1","2"]).unknown("#999");
 
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
     .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(width / 2, height / 2));
 
-d3.json("static/data/example.json", function(error, graph) {
+d3.json("static/data/graph.json", function(error, graph) {
   if (error) throw error;
 
   var link = svg.append("g")
@@ -17,7 +20,8 @@ d3.json("static/data/example.json", function(error, graph) {
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+      .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
+      .attr("stroke", function(d) {return link_color(d.label)});
 
   var node = svg.append("g")
       .attr("class", "nodes")

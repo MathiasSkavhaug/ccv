@@ -6,8 +6,9 @@
     <title>Visualization</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     
-    <svg width="960" height="600"></svg>
+    <svg width="960" height="600" id="graph"></svg>
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-scale-chromatic@3"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
 
     <script type="text/javascript" src={{ url_for("static", filename="script.js") }}></script>
