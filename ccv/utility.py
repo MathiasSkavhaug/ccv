@@ -27,8 +27,8 @@ def get_request(url: str) -> Dict[str, Any]:
     """
 
     key = os.environ.get("SS_API_KEY")
-    header = {"x-api-key": key} if key else None
-    r = requests.get(url, header=header)
+    headers = {"x-api-key": key} if key else None
+    r = requests.get(url, headers=headers)
     if r.status_code in [420, 403, 504]:
         print("Rate limited, waiting 5 minutes...")
         time.sleep(60 * 5)

@@ -73,6 +73,7 @@ get_features() saved dict structure:
 
 import argparse
 import json
+from matplotlib.pyplot import text
 import pandas as pd
 import statistics
 from tqdm import tqdm
@@ -304,12 +305,12 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
 
     # Add claim node
     nodes.append(
-        {"id": "Claim", "group": 0, "text": dinfo["claim"],}
+        {"id": "Claim", "type": 0, "text": dinfo["claim"],}
     )
     for id, doc in dinfo["docs"].items():
         # Add document node
         nodes.append(
-            {"id": id, "group": 1,}
+            {"id": id, "type": 1, "text": doc["title"],}
         )
         # Add claim-document link
         links.append(
@@ -323,7 +324,7 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
         for i, e in enumerate(doc["evidence"]):
             # Add evidence node
             nodes.append(
-                {"id": f"{id}_{i}", "group": 3,}
+                {"id": f"{id}_{i}", "type": 2, "text": e}
             )
             # Add document-evidence link
             links.append(
@@ -424,6 +425,7 @@ def get_features(args: argparse.Namespace) -> None:
 
                 d = {}
                 d["label"] = evidence["label"]
+                d["title"] = doc["title"]
                 d["evidence"] = [
                     doc["abstract"][s] for s in evidence["sentences"]
                 ]

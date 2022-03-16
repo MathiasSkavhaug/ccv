@@ -11,6 +11,7 @@ export function init(graph) {
             .attr("id", "viz")
 
     var node_color = d3.scaleOrdinal(d3.schemeDark2);
+    var node_type = {"0": "claim", "1": "document", "2": "evidence"}
     var link_color = d3.scaleOrdinal(["#b81809", "#09bd1b", "#cf620e"]).domain(["0", "1", "2"]).unknown("#999");
 
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
@@ -29,12 +30,8 @@ export function init(graph) {
             .enter()
         .append("line")
             .classed("link", true)
-            .attr("stroke-width", function (d) {
-                return d.value;
-            })
-            .attr("stroke", function (d) {
-                return link_color(d.label)
-            });
+            .attr("stroke-width", function (d) {return d.value;})
+            .attr("stroke", function (d) {return link_color(d.label)});
 
     var node = viz.append("g")
             .attr("class", "nodes")
@@ -43,10 +40,9 @@ export function init(graph) {
             .enter()
         .append("circle")
             .classed("node", true)
+            .attr("class", function(d) { return d3.select(this).attr("class") + " " + node_type[d.type]})
             .attr("r", 5)
-            .attr("fill", function (d) {
-                return node_color(d.group);
-            })
+            .attr("fill", function (d) {return node_color(d.type);})
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
@@ -92,6 +88,8 @@ export function init(graph) {
         d.fx = null;
         d.fy = null;
     }
+
+
 
     // ### ### //
 };

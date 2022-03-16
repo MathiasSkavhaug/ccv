@@ -5,19 +5,41 @@
 .node {
     stroke: #fff;
     stroke-width: 1px;
+    box-shadow: 1px;
 }
 
-html, body, #graph-container {
+html, body, #container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+}
+
+#graph-container {
     width: 100%;
     height: 100%;
     margin: 0;
 }
 
+#info-container {
+    width: 0%;
+    background-color: #c9ada7;
+    flex-grow: 1;
+}
+
 #viz-svg {
-    background-color: black;
+    background-color: #22223b;
 }
 
 .unselected {
     stroke-opacity: 0.2;
     opacity: 0.2;
+}
+
+#info-panel .title {
+    margin: 0.75em;
+}
+
+#info-panel .evidence {
+    margin: 0.75em;
 }
