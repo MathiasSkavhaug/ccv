@@ -1,8 +1,8 @@
-.links line {
+.link {
     stroke-opacity: 0.6;
 }
   
-.nodes circle {
+.node {
     stroke: #fff;
     stroke-width: 1px;
 }
@@ -13,6 +13,11 @@ html, body, #graph-container {
     margin: 0;
 }
 
-svg {
+#viz-svg {
     background-color: black;
+}
+
+.unselected {
+    stroke-opacity: 0.2;
+    opacity: 0.2;
 }
