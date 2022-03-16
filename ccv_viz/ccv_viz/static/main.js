@@ -1,7 +1,13 @@
-import { init } from './init.js';
-import { resize } from './resize.js';
+import { init } from "./init.js";
+import { resize } from "./resize.js";
+import { graphInteraction } from "./graphInteraction.js"
 
 $(window).on('load', function() {
-    init();
-    resize();
+    d3.json("static/data/graph.json", function(error, graph) {
+        if (error) throw error;
+
+        init(graph);
+        resize();
+        graphInteraction();
+    });
 });
