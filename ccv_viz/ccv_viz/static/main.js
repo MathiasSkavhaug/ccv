@@ -1,9 +1,15 @@
-import { init } from "./init.js";
-import { resize } from "./resize.js";
-import { graphInteraction } from "./graphInteraction.js"
+import {
+    init
+} from "./init.js";
+import {
+    resize
+} from "./resize.js";
+import {
+    graphInteraction
+} from "./graphInteraction.js"
 
-$(window).on('load', function() {
-    d3.json("static/data/graph.json", function(error, graph) {
+d3.select(window).on('load', function () {
+    d3.json("static/data/graph.json", function (error, graph) {
         if (error) throw error;
 
         init(graph);

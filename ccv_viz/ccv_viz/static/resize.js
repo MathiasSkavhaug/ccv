@@ -7,8 +7,8 @@ export function resize() {
     }
 
     function zoomFit(transitionDuration) {
-        var fullWidth = $("#graph-container").width(),
-            fullHeight = $("#graph-container").height();
+        var fullWidth = d3.select("#graph-container").node().getBoundingClientRect().width,
+            fullHeight = d3.select("#graph-container").node().getBoundingClientRect().height;
         var vizBounds = viz.node().getBBox();
         var centerX = vizBounds.x + vizBounds.width / 2,
             centerY = vizBounds.y + vizBounds.height / 2;
@@ -31,8 +31,8 @@ export function resize() {
 
     function resizeGraph() {
         // update viz size.
-        var width = $("#graph-container").width(),
-            height = $("#graph-container").height();
+        var width = d3.select("#graph-container").node().getBoundingClientRect().width,
+            height = d3.select("#graph-container").node().getBoundingClientRect().height;
         viz.attr("width", width).attr("height", height);
 
         // center and scale the network graph

@@ -1,6 +1,6 @@
 export function init(graph) {
-    var width = $("#graph-container").width(),
-        height = $("#graph-container").height()
+    var width = d3.select("#graph-container").node().getBoundingClientRect().width,
+        height = d3.select("#graph-container").node().getBoundingClientRect().height;
 
     var viz = d3.select("svg")
         .attr("width", "100%")
