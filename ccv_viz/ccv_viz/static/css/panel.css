@@ -1,6 +1,6 @@
 #info-container {
     width: 0%;
-    background-color: #c9ada7;
+    background-color: #363852;
     flex-grow: 1;
     overflow-y: auto;
 }
@@ -9,8 +9,10 @@
     background: #f2e9e4;
     margin: 0.5em;
     padding: 0.5em;
-    box-shadow: 5px 5px 2px #9a8c98;
+    box-shadow: 5px 5px 2px #2a2c41;
     border: 2.5px solid #f2e9e4;
+    font-family: Arial, Helvetica, sans-serif;
+    border-radius: 5px;
 }
 
 .card.claim {
