@@ -1,0 +1,35 @@
+#info-container {
+    width: 0%;
+    background-color: #c9ada7;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.card {
+    background: #f2e9e4;
+    margin: 0.5em;
+    padding: 0.5em;
+    box-shadow: 5px 5px 2px #9a8c98;
+    border: 2.5px solid #f2e9e4;
+}
+
+.card.claim {
+    background-color: var(--claim-color);
+}
+
+.card.document {
+    background-color: var(--document-color);
+}
+
+.card.evidence {
+    background-color: var(--evidence-color);
+}
+
+.card.top {
+    margin-top: 5em;
+    margin-bottom: 5em;
+}
+
+.card-selected {
+    border: 2.5px solid var(--selected-color);
+}

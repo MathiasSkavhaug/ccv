@@ -1,0 +1,19 @@
+@import "./graph.css";
+@import "./panel.css";
+
+:root {
+    --claim-color: #2abe92;
+    --document-color: #e07829;
+    --evidence-color: #7b77b4;
+    --selected-color: #ea1953;
+    --false-color: #b81809;
+    --true-color: #09bd1b;
+    --reference-color: #0b61d3;
+}
+
+html, body, #container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+}

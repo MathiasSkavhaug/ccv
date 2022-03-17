@@ -1,0 +1,51 @@
+#graph-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+#viz-svg {
+    background-color: #22223b;
+}
+
+.link {
+    stroke-opacity: 0.6;
+}
+  
+.link.true {
+    stroke: var(--true-color);
+}
+
+.link.false {
+    stroke: var(--false-color);
+}
+
+.link.reference {
+    stroke: var(--reference-color);
+}
+
+.node {
+    stroke: #f2e9e4;
+    stroke-width: 1px;
+}
+
+.node.claim {
+    fill: var(--claim-color);
+}
+
+.node.document {
+    fill: var(--document-color);
+}
+
+.node.evidence {
+    fill: var(--evidence-color);
+}
+
+.node-selected {
+    stroke: var(--selected-color);
+}
+
+.unselected {
+    stroke-opacity: 0.2;
+    opacity: 0.2;
+}
