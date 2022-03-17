@@ -10,9 +10,6 @@ export function graphInit(graph) {
             .attr("height", height)
             .attr("id", "viz")
 
-    var node_type = {"0": "claim", "1": "document", "2": "evidence"}
-    var link_type = {"0": "false", "1": "true", "2": "reference"}
-
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
 
     var simulation = d3.forceSimulation()
@@ -29,7 +26,7 @@ export function graphInit(graph) {
             .enter()
         .append("line")
             .classed("link", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + link_type[d.label]})
+            .attr("class", function(d) { return d3.select(this).attr("class") + " " + linkType[d.label]})
             .attr("stroke-width", function (d) {return d.value;})
 
     var node = viz.append("g")
@@ -39,7 +36,7 @@ export function graphInit(graph) {
             .enter()
         .append("circle")
             .classed("node", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + node_type[d.type]})
+            .attr("class", function(d) { return d3.select(this).attr("class") + " " + nodeType[d.type]})
             .attr("r", 5)
             .call(d3.drag()
                 .on("start", dragstarted)
@@ -89,3 +86,6 @@ export function graphInit(graph) {
 
     // ### ### //
 };
+
+export var nodeType = {"0": "claim", "1": "document", "2": "evidence"}
+export var linkType = {"0": "false", "1": "true", "2": "reference"}

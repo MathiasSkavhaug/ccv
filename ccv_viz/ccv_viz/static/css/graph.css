@@ -5,7 +5,7 @@
 }
 
 #viz-svg {
-    background-color: #22223b;
+    background-color: var(--graph-color);
 }
 
 .link {
@@ -25,8 +25,9 @@
 }
 
 .node {
-    stroke: #f2e9e4;
+    stroke: var(--border-color);
     stroke-width: 1px;
+    cursor: pointer;
 }
 
 .node.claim {

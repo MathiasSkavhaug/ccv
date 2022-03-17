@@ -56,3 +56,11 @@ export function getDocument(evidence) {
         })
     return document.data()[0]
 }
+
+// Retrieves the label between two nodes.
+export function getLabelBetween(node1, node2) {
+    return d3.selectAll(".link")
+        .filter(function(d) {
+            return ((d.target.id == node1.id && d.source.id == node2.id) || d.target.id == node2.id && d.source.id == node1.id)
+        }).data()[0].label
+}

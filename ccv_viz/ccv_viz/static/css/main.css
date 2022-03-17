@@ -2,13 +2,16 @@
 @import "./panel.css";
 
 :root {
-    --claim-color: #2abe92;
-    --document-color: #e07829;
-    --evidence-color: #7b77b4;
-    --selected-color: #f73169;
+    --claim-color: #fe6d73;
+    --document-color: #ffcb77;
+    --evidence-color: #227c9d;
+    --selected-color: #ff2626;
     --false-color: #b81809;
     --true-color: #09bd1b;
     --reference-color: #0b61d3;
+    --panel-color: #363852;
+    --graph-color: #22223b;
+    --border-color: #dfd8d4;
 }
 
 html, body, #container {

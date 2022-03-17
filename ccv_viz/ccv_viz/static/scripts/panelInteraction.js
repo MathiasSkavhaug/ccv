@@ -1,8 +1,9 @@
-import { getNeighborsOfType, getDocument } from "./graphTraversal.js"
+import { getNeighborsOfType, getLabelBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
+import { linkType } from "./graphInit.js"
 
 export function panelInteractionInit() {
-
+    
 }
 
 // Opens the info panel.
@@ -22,17 +23,19 @@ export function closeInfoPanel() {
 }
 
 // Populates the info panel.
-export function populateInfoPanel(node) {
+export function populateInfoPanel(node, dom=true) {
     clearInfoPanel();
 
-    var node = d3.select(node).data()[0]
-    var originalNode = node
-    var nodeType = "document", neighborType = "evidence"
+    if (dom) {
+        var node = d3.select(node).data()[0]
+    }
     
     if (node.type == "0") { // claim
         var nodeType = "claim", neighborType = "document"
+    } else if (node.type == "1") { // document
+        var nodeType = "document", neighborType = "evidence"
     } else if (node.type == "2") { // evidence
-        node = getDocument(node)
+        var nodeType = "evidence", neighborType = "evidence"
     }
         
     var evidences = getNeighborsOfType(node, neighborType)
@@ -41,7 +44,7 @@ export function populateInfoPanel(node) {
         .append("div")
             .classed("top", true)
             .classed("card", true)
-            .classed("card-selected", function() {return node === originalNode})
+            .classed("card-selected", true)
             .classed(nodeType, true)
             .html(node.text)
             .on("click", function() {
@@ -49,24 +52,33 @@ export function populateInfoPanel(node) {
                 nodeHighlight(node);
                 moveHighlight(this);
             })
+
+    d3.select("#info-panel")
+        .append("hr")
             
     d3.select("#info-panel")
         .append("div")
             .attr("id", "evidence-container")
-
+            
     evidences
         .each(function(d) {
+            var label = linkType[getLabelBetween(d, node)]
             d3.select("#evidence-container")
-                .append("div")
-                    .classed("card", true)
-                    .classed("card-selected", function() {return d === originalNode})
-                    .classed(neighborType, true)
-                    .html(d.text)
-                    .on("click", function() {
-                        d3.event.stopPropagation();
-                        nodeHighlight(d);
-                        moveHighlight(this);
-                    })
+            .append("div")
+                .classed("card", true)
+                .classed("card-selected", function() {return d === node})
+                .classed(neighborType, true)
+                .classed(label, true)
+                .html(d.text)
+                .on("click", function() {
+                    d3.event.stopPropagation();
+                    nodeHighlight(d);
+                    moveHighlight(this);
+                })
+                .on("dblclick", function() {
+                    d3.event.stopPropagation();
+                    populateInfoPanel(d, false);
+                })
         })
 }
 
