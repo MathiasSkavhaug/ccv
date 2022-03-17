@@ -1,7 +1,7 @@
 import { getNeighborsOfType, getDocument } from "./graphTraversal.js"
-import { nodeHighlight, removeHighlight } from "./graphInteraction.js"
+import { nodeHighlight } from "./graphInteraction.js"
 
-export function infoPanelInteractionInit() {
+export function panelInteractionInit() {
 
 }
 
@@ -10,9 +10,6 @@ export function openInfoPanel() {
     d3.select("#graph-container")
         .transition()
             .style("width", "60%")
-
-    d3.select("#info-container")
-        .style("border-left", "2.5px solid #f2e9e4")
 }
 
 // Closes the info panel.
@@ -21,8 +18,6 @@ export function closeInfoPanel() {
         .transition()
             .style("width", "100%")
     
-    d3.select("#info-container")
-        .style("border-left", "0px solid #f2e9e4")
     clearInfoPanel();
 }
 

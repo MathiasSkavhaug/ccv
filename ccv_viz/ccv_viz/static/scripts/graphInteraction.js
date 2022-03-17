@@ -1,5 +1,5 @@
 import { getNeighbors, getNodeLinks } from "./graphTraversal.js"
-import { openInfoPanel, closeInfoPanel, populateInfoPanel } from "./infoPanelInteraction.js"
+import { openInfoPanel, closeInfoPanel, populateInfoPanel } from "./panelInteraction.js"
 
 export function graphInteractionInit() {
     // When nodes are clicked highlight node and neighboring nodes and open info panel.

@@ -1,4 +1,4 @@
-export function init(graph) {
+export function graphInit(graph) {
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
 
