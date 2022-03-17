@@ -37,10 +37,10 @@ export function isNeighborLink(node, link) {
     return (link.source.id === node.id || link.target.id === node.id)
 }
 
-// Finds evidence nodes of "node".
-export function getEvidences(node) {
+// Finds neighboring nodes of type "type" of node "node".
+export function getNeighborsOfType(node, type) {
     var neighbors = getNeighbors(node, false)
-    var evidences = d3.selectAll(".evidence")
+    var evidences = d3.selectAll("."+type)
         .filter(function(d) {
             return neighbors.has(d)
         })

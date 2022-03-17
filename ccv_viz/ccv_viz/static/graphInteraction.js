@@ -8,7 +8,8 @@ export function graphInteractionInit() {
             // Stop click propagation.
             d3.event.stopPropagation();
 
-            nodeHighlight(this);
+            var node = d3.select(this).data()[0]
+            nodeHighlight(node);
             openInfoPanel();
             populateInfoPanel(this);
         });
@@ -16,15 +17,13 @@ export function graphInteractionInit() {
     // When no nodes are clicked reset highlight to normal and close info panel.
     d3.select("#viz-svg")
         .on("click", function () {
-            d3.selectAll(".unselected")
-                .classed("unselected", false)
+            removeHighlight();
             closeInfoPanel();
         });
 }
 
-// Highlight node and neighboring nodes
-function nodeHighlight(node) {
-    var node = d3.select(node).data()[0]
+// Highlight node and neighboring nodes.
+export function nodeHighlight(node) {
     var neighbors = getNeighbors(node)
     var nodeLinks = getNodeLinks(node)
 
@@ -32,9 +31,21 @@ function nodeHighlight(node) {
         .classed("unselected", function (d) {
             return !neighbors.has(d)
         })
+        .classed("node-selected", function (d) {
+            return d === node
+        })
 
     d3.selectAll(".link")
         .classed("unselected", function (d) {
             return !nodeLinks.data().includes(d)
         })
+}
+
+// Remove all node highlighting.
+export function removeHighlight() {
+    d3.selectAll(".unselected")
+        .classed("unselected", false)
+    
+    d3.selectAll(".node-selected")
+        .classed("node-selected", false)
 }
