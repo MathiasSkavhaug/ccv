@@ -1,11 +1,48 @@
+:root {
+    --claim-color: #2abe92;
+    --document-color: #e07829;
+    --evidence-color: #7b77b4;
+    --selected-color: #ea1953;
+    --false-color: #b81809;
+    --true-color: #09bd1b;
+    --reference-color: #0b61d3;
+}
+
 .link {
     stroke-opacity: 0.6;
 }
   
+.link.true {
+    stroke: var(--true-color);
+}
+
+.link.false {
+    stroke: var(--false-color);
+}
+
+.link.reference {
+    stroke: var(--reference-color);
+}
+
 .node {
-    stroke: #fff;
+    stroke: #f2e9e4;
     stroke-width: 1px;
-    box-shadow: 1px;
+}
+
+.node.claim {
+    fill: var(--claim-color);
+}
+
+.node.document {
+    fill: var(--document-color);
+}
+
+.node.evidence {
+    fill: var(--evidence-color);
+}
+
+.node-selected {
+    stroke: var(--selected-color);
 }
 
 html, body, #container {
@@ -25,6 +62,7 @@ html, body, #container {
     width: 0%;
     background-color: #c9ada7;
     flex-grow: 1;
+    overflow-y: auto;
 }
 
 #viz-svg {
@@ -36,10 +74,31 @@ html, body, #container {
     opacity: 0.2;
 }
 
-#info-panel .title {
-    margin: 0.75em;
+.card {
+    background: #f2e9e4;
+    margin: 0.5em;
+    padding: 0.5em;
+    box-shadow: 5px 5px 2px #9a8c98;
+    border: 2.5px solid #f2e9e4;
 }
 
-#info-panel .evidence {
-    margin: 0.75em;
+.card.claim {
+    background-color: var(--claim-color);
+}
+
+.card.document {
+    background-color: var(--document-color);
+}
+
+.card.evidence {
+    background-color: var(--evidence-color);
+}
+
+.card.top {
+    margin-top: 5em;
+    margin-bottom: 5em;
+}
+
+.card-selected {
+    border: 2.5px solid var(--selected-color);
 }
