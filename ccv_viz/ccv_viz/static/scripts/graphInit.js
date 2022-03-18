@@ -27,7 +27,7 @@ export function graphInit(graph) {
         .append("line")
             .classed("link", true)
             .attr("class", function(d) { return d3.select(this).attr("class") + " " + linkType[d.label]})
-            .attr("stroke-width", function (d) {return d.value;})
+            .attr("stroke-width", function (d) {return d.width;})
 
     var node = viz.append("g")
             .attr("class", "nodes")
