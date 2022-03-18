@@ -80,6 +80,8 @@ export function populateInfoPanel(node, dom=true) {
                     populateInfoPanel(d, false);
                 })
         })
+
+    setTimeout(showInfoPanel, 250)
 }
 
 // Clears the info panel.
@@ -94,4 +96,30 @@ function moveHighlight(element) {
 
     d3.select(element)
         .classed("card-selected", true)
+}
+
+// Gets the height of the heighest div of class "cls".
+function getClassHeighest(cls) {
+    var highest = 0;
+    d3.selectAll(cls)
+        .each(function() {
+            highest = Math.max(highest, parseFloat(window.getComputedStyle(this).height))
+        })
+    return highest
+}
+
+// Displays the info panel.
+function showInfoPanel() {
+    var highest = getClassHeighest(".card")
+
+    d3.selectAll((".card"))
+        .style("height", highest+"px")
+        .transition()
+        .duration(250)
+        .style("opacity", "1")
+
+    d3.select("#info-container hr")
+        .transition()
+        .duration(250)
+        .style("opacity", "1")
 }
