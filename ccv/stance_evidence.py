@@ -98,7 +98,7 @@ def produce_files(args: argparse.Namespace) -> None:
                                 ),
                                 "title": None,
                                 "abstract": [e1],
-                            }, ensure_ascii=False)
+                            })
                         + "\n"
                     )
 
@@ -118,7 +118,7 @@ def produce_files(args: argparse.Namespace) -> None:
                                                 f"{claim_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
                                             )
                                         ],
-                                    }, ensure_ascii=False)
+                                    })
                                 + "\n"
                             )
                             claim_map[claim_count] = {
@@ -130,7 +130,7 @@ def produce_files(args: argparse.Namespace) -> None:
                             }
                             claim_count += 1
             with open(args.omap, "w", encoding="utf-8") as f:
-                f.write(json.dumps(claim_map, ensure_ascii=False))
+                f.write(json.dumps(claim_map))
 
 
 def main():

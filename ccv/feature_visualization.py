@@ -278,9 +278,12 @@ def get_evi_links(
         evidence = er["evidence"]
         if not evidence:
             continue
-        label = evidence[list(evidence.keys())[0]]["label"]
+        k = list(evidence.keys())[0]
+        label = evidence[k]["label"]
+        label_prob = evidence[k]["label_probs"][0 if label == "CONTRADICT" else 2]
         d = emap[str(er["id"])]
         d["label"] = label
+        d["label_prob"] = label_prob
         id = d.pop("claim_id")
         if id not in evi_links:
             evi_links[id] = []
@@ -316,22 +319,22 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
             {
                 "source": id,
                 "target": "Claim",
-                "value": 1,
                 "label": lmap[doc["label"]],
+                "width": doc["label_prob"],
             }
         )
         for i, e in enumerate(doc["evidence"]):
             # Add evidence node
             nodes.append(
-                {"id": f"{id}_{i}", "type": 2, "text": e}
+                {"id": f"{id}_{i}", "type": 2, "text": e["text"]}
             )
             # Add document-evidence link
             links.append(
                 {
                     "source": f"{id}_{i}",
                     "target": id,
-                    "value": 1,
                     "label": lmap[doc["label"]],
+                    "width": e["prob"],
                 }
             )
     for k, rlinks in dinfo["rlinks"].items():
@@ -341,8 +344,8 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
                 {
                     "source": k,
                     "target": rlink["reference"],
-                    "value": 1,
                     "label": 2,
+                    "width": 1,
                 }
             )
     for elink in dinfo["elinks"]:
@@ -352,6 +355,7 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
                 "source": f"{elink['fdoc_id']}_{elink['fdoc_e_num']}",
                 "target": f"{elink['sdoc_id']}_{elink['sdoc_e_num']}",
                 "label": lmap[elink["label"]],
+                "width": elink["label_prob"],
             }
         )
 
@@ -361,27 +365,28 @@ def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
         target = link["source"]
         source = link["target"]
         label = link["label"]
+        width = link["width"]
 
         # Only continue if evidence-evidence link
         if "_" not in target:
-            d[(target, source)] = str(label)
+            d[(target, source)] = (str(label), width)
             continue
 
-        d[(target, source)] = str(label)
+        d[(target, source)] = (str(label), width)
 
-        ele1 = d.get((target, source), {})
-        ele2 = d.get((source, target), {})
+        ele1 = d.get((target, source), None)
+        ele2 = d.get((source, target), None)
 
         if ele1 and ele2:
             # if labels do not agree, remove both
-            if ele1 != ele2:
+            if ele1[0] != ele2[0]:
                 d.pop((target, source))
                 d.pop((source, target))
             # keep first one
             else:
                 d.pop((target, source))
 
-    links = [{"source": s, "target": t, "label": l} for (s, t), l in d.items()]
+    links = [{"source": s, "target": t, "label": l, "width": w} for (s, t), (l, w) in d.items()]
 
     graph = {"nodes": nodes, "links": links}
 
@@ -424,10 +429,9 @@ def get_features(args: argparse.Namespace) -> None:
 
                 d = {}
                 d["label"] = evidence["label"]
+                d["label_prob"] = evidence["label_probs"][0 if evidence["label"] == "CONTRADICT" else 2]
                 d["title"] = doc["title"]
-                d["evidence"] = [
-                    doc["abstract"][s] for s in evidence["sentences"]
-                ]
+                d["evidence"] = [{"text": doc["abstract"][s], "prob": evidence["sentences_probs"][s]} for s in evidence["sentences"]]
                 d["aliases"] = doc["aliases"]
                 d["pinfo"] = process_paper(doc_id)
                 d["ainfo"] = process_authors(doc_id, author_map)
@@ -445,7 +449,7 @@ def get_features(args: argparse.Namespace) -> None:
                 info["elinks"] = evi_links.get(info["claim_id"], {})
 
             graph = create_graph(info)
-            f.write(json.dumps(graph, ensure_ascii=False) + "\n")
+            f.write(json.dumps(graph) + "\n")
 
 
 def main():

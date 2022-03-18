@@ -342,7 +342,7 @@ def write_claim(
                 "id": claim_id,
                 "claim": claim,
                 "doc_ids": [d["doc_id"] for d in docs],
-            }, ensure_ascii=False)
+            })
         + "\n"
     )
 
@@ -357,7 +357,7 @@ def write_doc(file: TextIO, doc: Dict[str, Any], written_docs: List[int]) -> Non
     """
 
     if doc["doc_id"] not in written_docs:
-        file.write(json.dumps(doc, ensure_ascii=False) + "\n")
+        file.write(json.dumps(doc) + "\n")
         written_docs.append(doc["doc_id"])
 
 
@@ -408,8 +408,9 @@ def retrieval(args: argparse.Namespace) -> None:
             for d in docs:
                 write_doc(co, d, written_docs)
 
-        del model
-        torch.cuda.empty_cache()
+        if args.device != "cpu":
+            del model
+            torch.cuda.empty_cache()
 
     print("Done")
     print("Number of unique documents kept:", len(written_docs))

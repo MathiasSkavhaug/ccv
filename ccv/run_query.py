@@ -17,8 +17,8 @@ import sys
 
 sys.path.append("longchecker/")
 sys.path.append("longchecker/longchecker/")
-from longchecker.predict import format_predictions, get_predictions
-from longchecker.util import write_jsonl
+from longchecker.predict import get_predictions
+from longchecker.util import write_jsonl, load_jsonl
 
 
 def get_args() -> argparse.Namespace:
@@ -55,7 +55,7 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
 
     input = f"./data/{exe_id}_claim.jsonl"
     with open(input, "w") as f:
-        f.write(json.dumps({"claim": claim}, ensure_ascii=False))
+        f.write(json.dumps({"claim": claim}))
 
     args = argparse.Namespace()
     args.index = "anserini/indexes/lucene-index-cord19-abstract-2022-02-07"
@@ -70,6 +70,40 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
     args.batch_size = 100
 
     retrieval(args)
+
+
+# modified version of format_predictions from longchecker/predict.py
+def format_predictions(args, predictions_all):
+    claims = load_jsonl(args.input_file)
+    claim_ids = [x["id"] for x in claims]
+    assert len(claim_ids) == len(set(claim_ids))
+
+    formatted = {claim: {} for claim in claim_ids}
+
+    # Dict keyed by claim.
+    for prediction in predictions_all:
+        # If it's NEI, skip it.
+        if prediction["predicted_label"] == "NEI":
+            continue
+
+        # Add prediction.
+        formatted_entry = {
+            prediction["abstract_id"]: {
+                "label": prediction["predicted_label"],
+                "label_probs": prediction["label_probs"],
+                "sentences": prediction["predicted_rationale"],
+                "sentences_probs": prediction["rationale_probs"]
+            }
+        }
+        formatted[prediction["claim_id"]].update(formatted_entry)
+
+    # Convert to jsonl.
+    res = []
+    for k, v in formatted.items():
+        to_append = {"id": k, "evidence": v}
+        res.append(to_append)
+
+    return res
 
 
 def stance_document(exe_id: str, device: str) -> None:
@@ -164,6 +198,7 @@ def run_query(claim: str, exe_id: str, device: str) -> None:
         exe_id (str): The execution id.
         device (str): The device to run the model on.
     """
+
     run_retrieval(claim, exe_id, device)
     stance_document(exe_id, device)
     stance_evidence(exe_id, device)
