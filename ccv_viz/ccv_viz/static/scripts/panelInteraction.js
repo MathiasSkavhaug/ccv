@@ -98,8 +98,8 @@ function moveHighlight(element) {
         .classed("card-selected", true)
 }
 
-// Gets the height of the heighest div of class "cls".
-function getClassHeighest(cls) {
+// Gets the height of the highest div of class "cls".
+function getClassHighest(cls) {
     var highest = 0;
     d3.selectAll(cls)
         .each(function() {
@@ -110,7 +110,7 @@ function getClassHeighest(cls) {
 
 // Displays the info panel.
 function showInfoPanel() {
-    var highest = getClassHeighest(".card")
+    var highest = getClassHighest(".card")
 
     d3.selectAll((".card"))
         .style("height", highest+"px")
