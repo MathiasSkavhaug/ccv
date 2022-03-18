@@ -57,9 +57,7 @@ def produce_files(args: argparse.Namespace) -> None:
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
-    with open(args.ocorpus, "w", encoding="utf-8") as ecorpus, open(
-        args.oclaims, "w", encoding="utf-8"
-    ) as eclaims:
+    with open(args.ocorpus, "w") as ecorpus, open(args.oclaims, "w") as eclaims:
         for claim_num, row in tqdm(
             predictions.iterrows(), total=predictions.shape[0]
         ):
@@ -100,8 +98,7 @@ def produce_files(args: argparse.Namespace) -> None:
                                 ),
                                 "title": None,
                                 "abstract": [e1],
-                            }
-                        )
+                            }, ensure_ascii=False)
                         + "\n"
                     )
 
@@ -121,8 +118,7 @@ def produce_files(args: argparse.Namespace) -> None:
                                                 f"{claim_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
                                             )
                                         ],
-                                    }
-                                )
+                                    }, ensure_ascii=False)
                                 + "\n"
                             )
                             claim_map[claim_count] = {
@@ -134,7 +130,7 @@ def produce_files(args: argparse.Namespace) -> None:
                             }
                             claim_count += 1
             with open(args.omap, "w", encoding="utf-8") as f:
-                f.write(json.dumps(claim_map))
+                f.write(json.dumps(claim_map, ensure_ascii=False))
 
 
 def main():

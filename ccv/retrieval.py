@@ -342,8 +342,7 @@ def write_claim(
                 "id": claim_id,
                 "claim": claim,
                 "doc_ids": [d["doc_id"] for d in docs],
-            }
-        )
+            }, ensure_ascii=False)
         + "\n"
     )
 
@@ -358,7 +357,7 @@ def write_doc(file: TextIO, doc: Dict[str, Any], written_docs: List[int]) -> Non
     """
 
     if doc["doc_id"] not in written_docs:
-        file.write(json.dumps(doc) + "\n")
+        file.write(json.dumps(doc, ensure_ascii=False) + "\n")
         written_docs.append(doc["doc_id"])
 
 
@@ -388,8 +387,8 @@ def retrieval(args: argparse.Namespace) -> None:
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
     written_docs = []
-    with open(Path(args.output_claims), "w", encoding="utf-8") as cl, open(
-        Path(args.output_corpus), "w", encoding="utf-8"
+    with open(Path(args.output_claims), "w") as cl, open(
+        Path(args.output_corpus), "w"
     ) as co:
         for index, row in tqdm(claims.iterrows(), total=claims.shape[0]):
             claim = row[args.claim_col]

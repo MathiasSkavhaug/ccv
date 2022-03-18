@@ -73,7 +73,6 @@ get_features() saved dict structure:
 
 import argparse
 import json
-from matplotlib.pyplot import text
 import pandas as pd
 import statistics
 from tqdm import tqdm
@@ -402,13 +401,13 @@ def get_features(args: argparse.Namespace) -> None:
 
     if args.erelations and args.emap:
         evidence_relations = pd.read_json(args.erelations, lines=True)
-        with open(args.emap, "r", encoding="utf-8") as f:
+        with open(args.emap, "r") as f:
             emap = json.load(f)
 
     author_map = {}
     evi_links = get_evi_links(evidence_relations, emap)
 
-    with open(args.output, "w", encoding="utf-8") as f:
+    with open(args.output, "w") as f:
         for index, row in tqdm(
             predictions.iterrows(), total=predictions.shape[0]
         ):
@@ -446,7 +445,7 @@ def get_features(args: argparse.Namespace) -> None:
                 info["elinks"] = evi_links.get(info["claim_id"], {})
 
             graph = create_graph(info)
-            f.write(json.dumps(graph) + "\n")
+            f.write(json.dumps(graph, ensure_ascii=False) + "\n")
 
 
 def main():

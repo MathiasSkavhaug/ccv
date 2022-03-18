@@ -54,8 +54,8 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
     """
 
     input = f"./data/{exe_id}_claim.jsonl"
-    with open(input, "w", encoding="utf-8") as f:
-        f.write(json.dumps({"claim": claim}))
+    with open(input, "w") as f:
+        f.write(json.dumps({"claim": claim}, ensure_ascii=False))
 
     args = argparse.Namespace()
     args.index = "anserini/indexes/lucene-index-cord19-abstract-2022-02-07"
