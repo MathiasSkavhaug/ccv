@@ -1,3 +1,5 @@
+import { closeCardPanel } from "./cardPanel.js"
+
 export function graphInit(graph) {
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
@@ -89,3 +91,11 @@ export function graphInit(graph) {
 
 export var nodeType = {"0": "claim", "1": "document", "2": "evidence"}
 export var linkType = {"0": "false", "1": "true", "2": "reference"}
+
+export function resetGraph() {
+    d3.select("#viz-svg")
+        .selectAll("*")
+        .remove()
+
+    closeCardPanel();
+}

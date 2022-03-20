@@ -5,10 +5,10 @@ import { cardPanelInit } from "./cardPanel.js"
 import { graphTooltipInit } from "./graphTooltip.js"
 import { graphSearchBarInit } from "./graphSearchBar.js"
 
-d3.select(window).on('load', function () {
-    d3.json("static/data/graph.json", function (error, graph) {
+export function init(graphResource) {
+    d3.json(graphResource, function (error, graph) {
         if (error) throw error;
-
+        
         graphInit(graph);
         resizeInit();
         graphInteractionInit();
@@ -16,4 +16,8 @@ d3.select(window).on('load', function () {
         graphTooltipInit();
         graphSearchBarInit();
     });
-});
+};
+
+d3.select(window).on('load', function () {
+    init("/static/data/graph.json")
+})

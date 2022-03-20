@@ -1,3 +1,10 @@
+#graph-search-bar-anchor {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+}
+
 #graph-search-bar-container {
     position: absolute;
     top: 1em;
@@ -5,6 +12,7 @@
     left: 0;
     right: 0;
     width: 30%;
+    pointer-events: all;
 }
 
 #graph-search-bar {
