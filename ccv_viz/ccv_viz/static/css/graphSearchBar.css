@@ -1,0 +1,36 @@
+#graph-search-bar-container {
+    position: absolute;
+    top: 1em;
+    margin: 0 auto 0 auto;
+    left: 0;
+    right: 0;
+    width: 30%;
+}
+
+#graph-search-bar {
+    margin-top: 5px;
+    border-radius: 5px;
+    background-color: var(--panel-color);
+    padding: 5px;
+    opacity: 0;
+}
+
+#search-bar {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    color: var(--border-color);
+    background: transparent;
+}
+
+#search-arrow {
+    height: 24px;
+    fill: var(--border-color);
+    cursor: pointer;
+    display: block;
+    margin: auto;
+}
+
+#search-arrow.down {
+    transform: rotate(180deg);
+}

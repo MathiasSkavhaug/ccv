@@ -6,20 +6,18 @@
 
 #graph-tooltip-container .question-mark {
     position: absolute;
-    width: 24px;
     height: 24px;
     fill: var(--border-color);
     z-index: 10;
-    margin: 5px;
+    cursor: pointer;
 }
 
 #graph-tooltip {
     position: absolute;
     left: 0px;
-    top: 36px;
+    top: 2em;
     opacity: 0;
     background-color: var(--panel-color);
-    box-shadow: 5px 5px 2px #1e1e35;
     border-radius: 5px;
 }
 
