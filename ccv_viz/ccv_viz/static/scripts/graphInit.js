@@ -4,7 +4,7 @@ export function graphInit(graph) {
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
 
-    var viz = d3.select("#viz-svg")
+    var viz = d3.select("#graph-svg")
             .attr("width", "100%")
             .attr("height", "100%")
         .append("g")
@@ -93,7 +93,7 @@ export var nodeType = {"0": "claim", "1": "document", "2": "evidence"}
 export var linkType = {"0": "false", "1": "true", "2": "reference"}
 
 export function resetGraph() {
-    d3.select("#viz-svg")
+    d3.select("#graph-svg")
         .selectAll("*")
         .remove()
 

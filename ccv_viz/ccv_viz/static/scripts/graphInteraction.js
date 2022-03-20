@@ -15,7 +15,7 @@ export function graphInteractionInit() {
         });
 
     // When no nodes are clicked reset highlight to normal and close info panel.
-    d3.select("#viz-svg")
+    d3.select("#graph-svg")
         .on("click", function () {
             removeHighlight();
             closeCardPanel();

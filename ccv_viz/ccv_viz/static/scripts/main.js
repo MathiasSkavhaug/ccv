@@ -8,7 +8,7 @@ import { graphSearchBarInit } from "./graphSearchBar.js"
 export function init(graphResource) {
     d3.json(graphResource, function (error, graph) {
         if (error) throw error;
-        
+
         graphInit(graph);
         resizeInit();
         graphInteractionInit();
