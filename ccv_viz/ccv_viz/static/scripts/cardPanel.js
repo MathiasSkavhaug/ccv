@@ -2,29 +2,29 @@ import { getNeighborsOfType, getLabelBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
-export function panelInteractionInit() {
+export function cardPanelInit() {
     
 }
 
 // Opens the info panel.
-export function openInfoPanel() {
+export function openCardPanel() {
     d3.select("#graph-container")
         .transition()
             .style("width", "60%")
 }
 
 // Closes the info panel.
-export function closeInfoPanel() {
+export function closeCardPanel() {
     d3.select("#graph-container")
         .transition()
             .style("width", "100%")
     
-    clearInfoPanel();
+    clearCardPanel();
 }
 
 // Populates the info panel.
-export function populateInfoPanel(node, dom=true) {
-    clearInfoPanel();
+export function populateCardPanel(node, dom=true) {
+    clearCardPanel();
 
     if (dom) {
         var node = d3.select(node).data()[0]
@@ -77,15 +77,15 @@ export function populateInfoPanel(node, dom=true) {
                 })
                 .on("dblclick", function() {
                     d3.event.stopPropagation();
-                    populateInfoPanel(d, false);
+                    populateCardPanel(d, false);
                 })
         })
 
-    setTimeout(showInfoPanel, 250)
+    setTimeout(showCardPanel, 250)
 }
 
 // Clears the info panel.
-function clearInfoPanel() {
+function clearCardPanel() {
     d3.select("#info-panel").html("")
 }
 
@@ -109,7 +109,7 @@ function getClassHighest(cls) {
 }
 
 // Displays the info panel.
-function showInfoPanel() {
+function showCardPanel() {
     var highest = getClassHighest(".card")
 
     d3.selectAll((".card"))

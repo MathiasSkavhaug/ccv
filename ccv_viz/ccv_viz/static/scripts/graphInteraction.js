@@ -1,5 +1,5 @@
 import { getNeighbors, getNodeLinks } from "./graphTraversal.js"
-import { openInfoPanel, closeInfoPanel, populateInfoPanel } from "./panelInteraction.js"
+import { openCardPanel, closeCardPanel, populateCardPanel } from "./cardPanel.js"
 
 export function graphInteractionInit() {
     // When nodes are clicked highlight node and neighboring nodes and open info panel.
@@ -10,15 +10,15 @@ export function graphInteractionInit() {
 
             var node = d3.select(this).data()[0]
             nodeHighlight(node);
-            openInfoPanel();
-            populateInfoPanel(this);
+            openCardPanel();
+            populateCardPanel(this);
         });
 
     // When no nodes are clicked reset highlight to normal and close info panel.
     d3.select("#viz-svg")
         .on("click", function () {
             removeHighlight();
-            closeInfoPanel();
+            closeCardPanel();
         });
 }
 
