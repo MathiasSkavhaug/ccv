@@ -19,6 +19,8 @@
     top: 36px;
     opacity: 0;
     background-color: var(--panel-color);
+    box-shadow: 5px 5px 2px #1e1e35;
+    border-radius: 5px;
 }
 
 .tooltip.circle {
@@ -43,7 +45,7 @@
 .tooltip.sentence {
     display: flex;
     margin: 5px;
-    width: 100px;
+    width: 125px;
     height: 26px;
 }
 
