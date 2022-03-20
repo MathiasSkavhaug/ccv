@@ -2,7 +2,7 @@ export function graphInit(graph) {
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
 
-    var viz = d3.select("svg")
+    var viz = d3.select("#viz-svg")
             .attr("width", "100%")
             .attr("height", "100%")
         .append("g")

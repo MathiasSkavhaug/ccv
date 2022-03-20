@@ -1,3 +1,5 @@
+@import "./graphTooltip.css";
+
 #graph-container {
     width: 100%;
     height: 100%;
@@ -6,6 +8,7 @@
 
 #viz-svg {
     background-color: var(--graph-color);
+    z-index: 1;
 }
 
 .link {

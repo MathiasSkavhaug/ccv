@@ -1,0 +1,73 @@
+#graph-tooltip-container {
+    position: absolute;
+    top: 1em;
+    left: 1em;
+}
+
+#graph-tooltip-container .question-mark {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    fill: var(--border-color);
+    z-index: 10;
+    margin: 5px;
+}
+
+#graph-tooltip {
+    position: absolute;
+    left: 0px;
+    top: 36px;
+    opacity: 0;
+    background-color: var(--panel-color);
+}
+
+.tooltip.circle {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--border-color);
+}
+
+.tooltip.circle.claim {
+    background: var(--claim-color);
+}
+
+.tooltip.circle.document {
+    background: var(--document-color);
+}
+
+.tooltip.circle.evidence {
+    background: var(--evidence-color);
+}
+
+.tooltip.sentence {
+    display: flex;
+    margin: 5px;
+    width: 100px;
+    height: 26px;
+}
+
+.tooltip.text {
+    margin: auto;
+    margin-left: 10px;
+    color: var(--border-color);
+}
+
+.tooltip.line {
+    width: 26px;
+    height: 2px;
+    margin: auto 0px auto 0px;
+    background-color: blueviolet;
+}
+
+.tooltip.line.true {
+    background-color: var(--true-color);
+}
+
+.tooltip.line.false {
+    background-color: var(--false-color);
+}
+
+.tooltip.line.reference {
+    background-color: var(--reference-color);
+}
