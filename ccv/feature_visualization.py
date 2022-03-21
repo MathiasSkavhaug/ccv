@@ -72,6 +72,7 @@ get_features() saved dict structure:
 
 
 import argparse
+from graph import create_graph
 import json
 import pandas as pd
 import statistics
@@ -103,7 +104,7 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def process_paper(corpusid: str) -> Dict[str, any]:
+def process_paper(corpusid: str) -> Dict[str, Any]:
     """Retrieves various information related to the document associated with
     the given corpusid.
 
@@ -111,7 +112,7 @@ def process_paper(corpusid: str) -> Dict[str, any]:
         corpusid (str): The corpusid of a document.
 
     Returns:
-        Dict[str, any]: Dict containing various information about the document.
+        Dict[str, Any]: Dict containing various information about the document.
     """
 
     fields = ",".join(["citationCount", "influentialCitationCount"])
@@ -123,7 +124,7 @@ def process_paper(corpusid: str) -> Dict[str, any]:
 
 def process_authors(
     corpusid: str, author_map: Dict[str, str]
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """Retrieves various information related to the authors of the paper
     associated with the given corpusid. Also updates the author id to author
     name mapping.
@@ -133,7 +134,7 @@ def process_authors(
         author_map (Dict[str,str]): A mapping between author ids and names.
 
     Returns:
-        Dict[str, any]: Dict containing various author related information.
+        Dict[str, Any]: Dict containing various author related information.
     """
 
     def get_max_and_median(d, k):
@@ -168,7 +169,7 @@ def process_authors(
     return result
 
 
-def process_references(corpusid: str) -> Dict[str, any]:
+def process_references(corpusid: str) -> Dict[str, Any]:
     """Retrieves various information related to the references of the paper
     associated with the given corpusid.
 
@@ -176,7 +177,7 @@ def process_references(corpusid: str) -> Dict[str, any]:
         corpusid (str): The corpusid of a document.
 
     Returns:
-        Dict[str, any]: Dict containing various reference related information.
+        Dict[str, Any]: Dict containing various reference related information.
     """
 
     fields = ",".join(["externalIds", "contexts", "intents", "isInfluential"])
@@ -195,16 +196,16 @@ def process_references(corpusid: str) -> Dict[str, any]:
     return d
 
 
-def get_ref_links(dinfo: Dict[str, any]) -> Dict[str, any]:
+def get_ref_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
     """Looks for reference links between documents identified as evidence to a
     claim.
 
     Args:
-        dinfo (Dict[str, any]): Dictionary containing various claim related
+        dinfo (Dict[str, Any]): Dictionary containing various claim related
             evidence.
 
     Returns:
-        Dict[str, any]: Dictionary where the key is the referencing document
+        Dict[str, Any]: Dictionary where the key is the referencing document
             and the value is a dictionary containing information about that
             reference.
     """
@@ -233,15 +234,15 @@ def get_ref_links(dinfo: Dict[str, any]) -> Dict[str, any]:
     return d
 
 
-def get_aut_links(dinfo: Dict[str, any]) -> Dict[str, any]:
+def get_aut_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
     """Looks for common authors between documents identified as evidence to a claim.
 
     Args:
-        dinfo (Dict[str, any]): Dictionary containing various claim related
+        dinfo (Dict[str, Any]): Dictionary containing various claim related
             evidence.
 
     Returns:
-        Dict[str, any]: Dictionary containing information about which documents
+        Dict[str, Any]: Dictionary containing information about which documents
             have common authors.
     """
 
@@ -289,108 +290,6 @@ def get_evi_links(
             evi_links[id] = []
         evi_links[id].append(d)
     return evi_links
-
-
-def create_graph(dinfo: Dict[str, any]) -> Dict[str, Dict[str, any]]:
-    """Creates a graph representation from the claim information dictionary.
-
-    Args:
-        dinfo (Dict[str, any]): Dictionary containing various claim related
-            evidence.
-
-    Returns:
-        Dict[str, Dict[str, any]]: The graph as a dictionary.
-    """
-
-    lmap = {"SUPPORT": 1, "CONTRADICT": 0}
-    nodes, links = [], []
-
-    # Add claim node
-    nodes.append(
-        {"id": "Claim", "type": 0, "text": dinfo["claim"],}
-    )
-    for id, doc in dinfo["docs"].items():
-        # Add document node
-        nodes.append(
-            {"id": id, "type": 1, "text": doc["title"],}
-        )
-        # Add claim-document link
-        links.append(
-            {
-                "source": id,
-                "target": "Claim",
-                "label": lmap[doc["label"]],
-                "width": doc["label_prob"],
-            }
-        )
-        for i, e in enumerate(doc["evidence"]):
-            # Add evidence node
-            nodes.append(
-                {"id": f"{id}_{i}", "type": 2, "text": e["text"]}
-            )
-            # Add document-evidence link
-            links.append(
-                {
-                    "source": f"{id}_{i}",
-                    "target": id,
-                    "label": lmap[doc["label"]],
-                    "width": e["prob"],
-                }
-            )
-    for k, rlinks in dinfo["rlinks"].items():
-        # Add document-document link
-        for rlink in rlinks:
-            links.append(
-                {
-                    "source": k,
-                    "target": rlink["reference"],
-                    "label": 2,
-                    "width": 1,
-                }
-            )
-    for elink in dinfo["elinks"]:
-        # Add evidence-evidence link
-        links.append(
-            {
-                "source": f"{elink['fdoc_id']}_{elink['fdoc_e_num']}",
-                "target": f"{elink['sdoc_id']}_{elink['sdoc_e_num']}",
-                "label": lmap[elink["label"]],
-                "width": elink["label_prob"],
-            }
-        )
-
-    d = {}
-    # Only keep links in one direction.
-    for i, link in enumerate(links):
-        target = link["source"]
-        source = link["target"]
-        label = link["label"]
-        width = link["width"]
-
-        # Only continue if evidence-evidence link
-        if "_" not in target:
-            d[(target, source)] = (str(label), width)
-            continue
-
-        d[(target, source)] = (str(label), width)
-
-        ele1 = d.get((target, source), None)
-        ele2 = d.get((source, target), None)
-
-        if ele1 and ele2:
-            # if labels do not agree, remove both
-            if ele1[0] != ele2[0]:
-                d.pop((target, source))
-                d.pop((source, target))
-            # keep first one
-            else:
-                d.pop((target, source))
-
-    links = [{"source": s, "target": t, "label": l, "width": w} for (s, t), (l, w) in d.items()]
-
-    graph = {"nodes": nodes, "links": links}
-
-    return graph
 
 
 def get_features(args: argparse.Namespace) -> None:
