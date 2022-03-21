@@ -36,6 +36,8 @@ export function populateCardPanel(node, dom=true) {
         var nodeType = "document", neighborType = "evidence"
     } else if (node.type == "2") { // evidence
         var nodeType = "evidence", neighborType = "evidence"
+    } else if (node.type == "3") {
+        var nodeType = "author", neighborType = "author"
     }
         
     var evidences = getNeighborsOfType(node, neighborType)

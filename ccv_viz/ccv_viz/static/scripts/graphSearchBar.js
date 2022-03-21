@@ -1,4 +1,4 @@
-import { init } from "./main.js"
+import { initWithLoad } from "./main.js"
 import { resetGraph } from "./graphInit.js"
 
 export function graphSearchBarInit() {
@@ -34,9 +34,10 @@ function sendSearchRequest() {
 
         // Remove graph and remake with new data.
         resetGraph()
-        init("/search/"+query)
+        initWithLoad("/search/"+query)
 
         searchBar.value = ""
         toggleSearchBar()
+        d3.select("#option-author").classed("option-selected", false)
     }
 }

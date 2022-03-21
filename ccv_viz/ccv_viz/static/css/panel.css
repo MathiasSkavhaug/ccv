@@ -20,10 +20,6 @@
     background: linear-gradient(to right, white 95%, var(--claim-color) 0%);
 }
 
-.card.claim.false {
-    background-color: var(--true-color);
-}
-
 .card.document {
     background: linear-gradient(to right, white 95%, var(--document-color) 0%);
 }
@@ -46,6 +42,10 @@
 
 .card.evidence.false {
     background: linear-gradient(to right, white, white 95%, var(--evidence-color) 95%, var(--evidence-color) 99%, var(--false-color) 99%);
+}
+
+.card.author {
+    background-color: var(--author-color);
 }
 
 .card-selected {

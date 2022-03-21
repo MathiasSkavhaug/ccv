@@ -1,7 +1,7 @@
 #graph-tooltip-container {
     position: absolute;
-    top: 1em;
-    left: 1em;
+    top: 1rem;
+    left: 1rem;
 }
 
 #graph-tooltip-container .question-mark {
@@ -38,6 +38,10 @@
 
 .tooltip.circle.evidence {
     background: var(--evidence-color);
+}
+
+.tooltip.circle.author {
+    background: var(--author-color);
 }
 
 .tooltip.sentence {

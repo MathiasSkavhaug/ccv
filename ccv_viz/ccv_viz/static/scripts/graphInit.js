@@ -1,6 +1,8 @@
 import { closeCardPanel } from "./cardPanel.js"
 
-export function graphInit(graph) {
+export function graphInit(graph, config) {
+    var graph = structuredClone(graph)
+
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
 
@@ -12,6 +14,11 @@ export function graphInit(graph) {
             .attr("height", height)
             .attr("id", "viz")
 
+    if (!config.includes("author")) {
+        graph.links = graph.links.filter(function(d) {return ["0","1","2"].includes(d.label)}) // only add true, false and reference links.
+        graph.nodes = graph.nodes.filter(function(d) {return [0,1,2].includes(d.type)}) // only add claim, document and evidence nodes.
+    }
+
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
 
     var simulation = d3.forceSimulation()
@@ -20,6 +27,7 @@ export function graphInit(graph) {
         }))
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
+
 
     var link = viz.append("g")
             .attr("class", "links")
@@ -89,8 +97,8 @@ export function graphInit(graph) {
     // ### ### //
 };
 
-export var nodeType = {"0": "claim", "1": "document", "2": "evidence"}
-export var linkType = {"0": "false", "1": "true", "2": "reference"}
+export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"}
+export var linkType = {"0": "false", "1": "true", "2": "reference", "3": "author"}
 
 export function resetGraph() {
     d3.select("#graph-svg")

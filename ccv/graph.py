@@ -71,6 +71,36 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             }
         )
 
+    authors = {}
+    amap = {}
+    for id, doc in dinfo["docs"].items():
+        for aid, aname in doc["ainfo"]["authors"].items():
+            amap[aid] = aname
+            if aid in authors:
+                authors[aid].append(id)
+            else:
+                authors[aid] = [id]
+
+    for aid, docs in authors.items():
+        # create author node.
+        nodes.append(
+            {
+                "id": aid,
+                "type": 3,
+                "text": amap[aid],
+            }
+        )
+        for doc in docs:
+            # create author-document link
+            links.append(
+                {
+                    "target": aid,
+                    "source": doc,
+                    "label": 3,
+                    "width": 1,
+                }
+            )
+
     d = {}
     # Only keep links in one direction.
     for i, link in enumerate(links):

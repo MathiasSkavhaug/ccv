@@ -1,6 +1,6 @@
 #graph-search-bar-container {
     position: absolute;
-    top: 1em;
+    top: 1rem;
     margin: 0 auto 0 auto;
     left: 0;
     right: 0;
@@ -21,16 +21,4 @@
     outline: 0;
     color: var(--border-color);
     background: transparent;
-}
-
-#search-arrow {
-    height: 24px;
-    fill: var(--border-color);
-    cursor: pointer;
-    display: block;
-    margin: auto;
-}
-
-#search-arrow.down {
-    transform: rotate(180deg);
 }

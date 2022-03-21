@@ -4,20 +4,26 @@ import { graphInteractionInit } from "./graphInteraction.js"
 import { cardPanelInit } from "./cardPanel.js"
 import { graphTooltipInit } from "./graphTooltip.js"
 import { graphSearchBarInit } from "./graphSearchBar.js"
+import { graphOptionsBarInit } from "./graphOptionsBar.js";
 
-export function init(graphResource) {
+export function initWithLoad(graphResource) {
     d3.json(graphResource, function (error, graph) {
         if (error) throw error;
 
-        graphInit(graph);
-        resizeInit();
-        graphInteractionInit();
-        cardPanelInit();
-        graphTooltipInit();
-        graphSearchBarInit();
+        init(graph)
     });
 };
 
+export function init(graph, config=[]) {
+    graphInit(graph, config);
+    resizeInit();
+    graphInteractionInit();
+    cardPanelInit();
+    graphTooltipInit();
+    graphSearchBarInit();
+    graphOptionsBarInit(graph);
+}
+
 d3.select(window).on('load', function () {
-    init("/static/data/graph.json")
+    initWithLoad("/static/data/graph.json")
 })

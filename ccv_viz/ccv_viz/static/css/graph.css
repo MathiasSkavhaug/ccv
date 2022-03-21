@@ -1,5 +1,6 @@
 @import "./graphTooltip.css";
 @import "./graphSearchBar.css";
+@import "./graphOptionsBar.css";
 
 #graph-container {
     width: 100%;
@@ -29,6 +30,10 @@
     stroke: var(--reference-color);
 }
 
+.link.author {
+    stroke: var(--author-color);
+}
+
 .node {
     stroke: var(--border-color);
     stroke-width: 1px;
@@ -47,6 +52,10 @@
     fill: var(--evidence-color);
 }
 
+.node.author {
+    fill: var(--author-color);
+}
+
 .node-selected {
     stroke: var(--selected-color);
 }
@@ -54,4 +63,24 @@
 .unselected {
     stroke-opacity: 0.2;
     opacity: 0.2;
+}
+
+.arrow {
+    height: 24px;
+    fill: var(--border-color);
+    cursor: pointer;
+    display: block;
+    margin: auto;
+}
+
+.down {
+    transform: rotate(180deg);
+}
+
+.right {
+    transform: rotate(90deg);
+}
+
+.left {
+    transform: rotate(270deg);
 }

@@ -26,7 +26,7 @@ get_features() saved dict structure:
                 "influentialCitationCount": int
             },
             "ainfo": {
-                "authors": [str],
+                "authors": {str: str},
                 "numAuthors": int,
                 "maxPaperCount": int,
                 "medianPaperCount": int,
@@ -122,16 +122,12 @@ def process_paper(corpusid: str) -> Dict[str, Any]:
     return res
 
 
-def process_authors(
-    corpusid: str, author_map: Dict[str, str]
-) -> Dict[str, Any]:
+def process_authors(corpusid: str) -> Dict[str, Any]:
     """Retrieves various information related to the authors of the paper
-    associated with the given corpusid. Also updates the author id to author
-    name mapping.
+    associated with the given corpusid.
 
     Args:
         corpusid (str): The corpusid of a document.
-        author_map (Dict[str,str]): A mapping between author ids and names.
 
     Returns:
         Dict[str, Any]: Dict containing various author related information.
@@ -160,8 +156,7 @@ def process_authors(
     d = {k: list(v) for k, v in d.items()}
 
     result = {}
-    author_map.update(dict(zip(d["authorId"], d["name"])))
-    result["authors"] = d["authorId"]
+    result["authors"] = dict(zip(d["authorId"], d["name"]))
     result["numAuthors"] = len(d["authorId"])
     result.update(get_max_and_median(d, "paperCount"))
     result.update(get_max_and_median(d, "citationCount"))
@@ -251,8 +246,8 @@ def get_aut_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
     for i in range(len(docs)):
         for j in range(i + 1, len(docs)):
             d1, d2 = docs[i], docs[j]
-            a1 = set(dinfo[d1]["ainfo"]["authors"])
-            a2 = set(dinfo[d2]["ainfo"]["authors"])
+            a1 = set(dinfo[d1]["ainfo"]["authors"].keys())
+            a2 = set(dinfo[d2]["ainfo"]["authors"].keys())
             common = a1.intersection(a2)
             if common:
                 d[d1] = {"doc": d2, "common": list(common)}
@@ -308,7 +303,6 @@ def get_features(args: argparse.Namespace) -> None:
         with open(args.emap, "r") as f:
             emap = json.load(f)
 
-    author_map = {}
     evi_links = get_evi_links(evidence_relations, emap)
 
     with open(args.output, "w") as f:
@@ -333,7 +327,7 @@ def get_features(args: argparse.Namespace) -> None:
                 d["evidence"] = [{"text": doc["abstract"][s], "prob": evidence["sentences_probs"][s]} for s in evidence["sentences"]]
                 d["aliases"] = doc["aliases"]
                 d["pinfo"] = process_paper(doc_id)
-                d["ainfo"] = process_authors(doc_id, author_map)
+                d["ainfo"] = process_authors(doc_id)
                 d["rinfo"] = process_references(doc_id)
                 try:
                     d["publish_time"] = doc["publish_time"].strftime("%Y-%m-%d")
