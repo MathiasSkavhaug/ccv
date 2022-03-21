@@ -27,13 +27,9 @@ get_features() saved dict structure:
             },
             "ainfo": {
                 "authors": {str: str},
-                "numAuthors": int,
-                "maxPaperCount": int,
-                "medianPaperCount": int,
-                "maxCitationCount": int,
-                "medianCitationCount": int,
-                "maxHIndex": int,
-                "medianHIndex": int
+                "paperCounts": [int],
+                "citationCounts": [int],
+                "hIndices": [int],
             },
             "rinfo": {
                 corpusid: {
@@ -75,7 +71,6 @@ import argparse
 from graph import create_graph
 import json
 import pandas as pd
-import statistics
 from tqdm import tqdm
 from typing import Dict, Any
 from utility import get_request
@@ -133,13 +128,6 @@ def process_authors(corpusid: str) -> Dict[str, Any]:
         Dict[str, Any]: Dict containing various author related information.
     """
 
-    def get_max_and_median(d, k):
-        new = {}
-        d[k] = [c if c else 0 for c in d[k]]  # some values might be None.
-        new[f"max{k[:1].upper()+k[1:]}"] = max(d[k])
-        new[f"median{k[:1].upper()+k[1:]}"] = statistics.median(d[k])
-        return new
-
     fields = ",".join(
         [
             "authors.name",
@@ -157,10 +145,10 @@ def process_authors(corpusid: str) -> Dict[str, Any]:
 
     result = {}
     result["authors"] = dict(zip(d["authorId"], d["name"]))
-    result["numAuthors"] = len(d["authorId"])
-    result.update(get_max_and_median(d, "paperCount"))
-    result.update(get_max_and_median(d, "citationCount"))
-    result.update(get_max_and_median(d, "hIndex"))
+    result["paperCounts"] = d["paperCount"]
+    result["citationCounts"] = d["citationCount"]
+    result["hIndices"] = d["hIndex"]
+
     return result
 
 
@@ -276,7 +264,9 @@ def get_evi_links(
             continue
         k = list(evidence.keys())[0]
         label = evidence[k]["label"]
-        label_prob = evidence[k]["label_probs"][0 if label == "CONTRADICT" else 2]
+        label_prob = evidence[k]["label_probs"][
+            0 if label == "CONTRADICT" else 2
+        ]
         d = emap[str(er["id"])]
         d["label"] = label
         d["label_prob"] = label_prob
@@ -322,9 +312,17 @@ def get_features(args: argparse.Namespace) -> None:
 
                 d = {}
                 d["label"] = evidence["label"]
-                d["label_prob"] = evidence["label_probs"][0 if evidence["label"] == "CONTRADICT" else 2]
+                d["label_prob"] = evidence["label_probs"][
+                    0 if evidence["label"] == "CONTRADICT" else 2
+                ]
                 d["title"] = doc["title"]
-                d["evidence"] = [{"text": doc["abstract"][s], "prob": evidence["sentences_probs"][s]} for s in evidence["sentences"]]
+                d["evidence"] = [
+                    {
+                        "text": doc["abstract"][s],
+                        "prob": evidence["sentences_probs"][s],
+                    }
+                    for s in evidence["sentences"]
+                ]
                 d["aliases"] = doc["aliases"]
                 d["pinfo"] = process_paper(doc_id)
                 d["ainfo"] = process_authors(doc_id)

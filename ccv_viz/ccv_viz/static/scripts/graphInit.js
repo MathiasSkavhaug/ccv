@@ -47,7 +47,7 @@ export function graphInit(graph, config) {
         .append("circle")
             .classed("node", true)
             .attr("class", function(d) { return d3.select(this).attr("class") + " " + nodeType[d.type]})
-            .attr("r", 5)
+            .attr("r", function(d) {return d.size})
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
