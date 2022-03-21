@@ -39,9 +39,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         )
         for i, e in enumerate(doc["evidence"]):
             # Add evidence node
-            nodes.append(
-                {"id": f"{id}_{i}", "type": 2, "text": e["text"]}
-            )
+            nodes.append({"id": f"{id}_{i}", "type": 2, "text": e["text"]})
             # Add document-evidence link
             links.append(
                 {
@@ -81,12 +79,11 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         label = link["label"]
         width = link["width"]
 
+        d[(target, source)] = (str(label), width)
+
         # Only continue if evidence-evidence link
         if "_" not in target:
-            d[(target, source)] = (str(label), width)
             continue
-
-        d[(target, source)] = (str(label), width)
 
         ele1 = d.get((target, source), None)
         ele2 = d.get((source, target), None)
@@ -100,7 +97,10 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             else:
                 d.pop((target, source))
 
-    links = [{"source": s, "target": t, "label": l, "width": w} for (s, t), (l, w) in d.items()]
+    links = [
+        {"source": s, "target": t, "label": l, "width": w}
+        for (s, t), (l, w) in d.items()
+    ]
 
     graph = {"nodes": nodes, "links": links}
 
