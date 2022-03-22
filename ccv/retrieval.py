@@ -27,17 +27,27 @@ example usage:
 
 import argparse
 import json
-import nltk
-import pandas as pd
-from pathlib import Path
-from tqdm import tqdm
-import utility
-import torch
-from typing import Any, List, TextIO, Dict, Generator
+import re
 from difflib import SequenceMatcher
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from pyserini.search.lucene import LuceneSearcher
+from pathlib import Path
+from typing import Any, Dict, Generator, List, TextIO
 
+import pandas as pd
+import torch
+from nltk import (
+    corpus,
+    ne_chunk,
+    pos_tag,
+    word_tokenize,
+    sent_tokenize,
+    download,
+)
+from nltk.tree import Tree
+from pyserini.search.lucene import LuceneSearcher
+from tqdm import tqdm
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+import utility
 
 nunavail = 0  # number of docs not having the corpusid initially available.
 nmissed = 0  # number of docs where the corpusid could not be found.
@@ -51,7 +61,9 @@ def get_args() -> argparse.Namespace:
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--index", type=str, help="index file path", required=True)
+    parser.add_argument(
+        "--index", type=str, help="index file path", required=True
+    )
     parser.add_argument(
         "--nkeep",
         type=int,
@@ -82,11 +94,15 @@ def get_args() -> argparse.Namespace:
         help="corpus output file path",
         required=True,
     )
-    parser.add_argument("--delimiter", type=str, help="if not json, which delimiter")
+    parser.add_argument(
+        "--delimiter", type=str, help="if not json, which delimiter"
+    )
     parser.add_argument(
         "--rerank", action="store_true", help="if given, perform re-ranking"
     )
-    parser.add_argument("--device", type=str, help="device to use for re-ranking")
+    parser.add_argument(
+        "--device", type=str, help="device to use for re-ranking"
+    )
     parser.add_argument(
         "--batch_size", type=int, help="batch-size to use when re-ranking"
     )
@@ -94,26 +110,84 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def split_fullstopless(text: str) -> List[str]:
+    """Tries to split text without fullstops into sentences.
+
+    Args:
+        text (str): Text without fullstops
+
+    Returns:
+        List[str]: List of produced sentences
+    """
+
+    tokens = word_tokenize(text.replace(".", ""))
+    chunks = ne_chunk(pos_tag(tokens))
+
+    # Lowercase entities
+    tokens = []
+    for c in chunks:
+        if isinstance(c, Tree):
+            tokens.append(" ".join([w for w, _ in c.leaves()]).lower())
+        else:
+            tokens.append(c[0])
+
+    # Combine words with special tokens.
+    new_tokens = []
+    for i, token in enumerate(tokens):
+        if token in "?!.,:;'\"-%)" or token == "'s":
+            new_tokens[-1] = new_tokens[-1] + token
+        elif i != 0 and new_tokens[-1] == "(":
+            new_tokens[-1] = new_tokens[-1] + token
+        else:
+            new_tokens.append(token)
+
+    # Detect spaces after lower-case character and before capitalized word.
+    text = " ".join(new_tokens)
+    regex = r"(?<=[a-z])\s(?=\b[A-Z][a-z]+\b)"
+    sentences = re.split(regex, text)
+
+    # If last word in sentence is a stopword, continue sentence.
+    new_sentences = []
+    for i, s in enumerate(sentences):
+        if i != 0 and word_tokenize(new_sentences[-1])[
+            -1
+        ] in corpus.stopwords.words("english"):
+            new_sentences[-1] = new_sentences[-1] + " " + s
+        else:
+            new_sentences.append(s)
+
+    # Add fullstops to sentences.
+    new_sentences = [s + "." for s in new_sentences]
+    return new_sentences
+
+
 def get_sentences(
     metadata: Dict[str, str],
-    tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer,
 ) -> List[str]:
     """Retrieves sentences from a hit's abstract.
 
     Args:
         hit (Dict[str, Any]): The metadata associated with the hit to retrieve
             abstract sentences from.
-        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
-            Splits text into sentences.
 
     Returns:
         List[str]: The sentences from a hit's abstract.
     """
 
     abstract = metadata["abstract"]
-    if type(abstract) is list:
-        abstract = " ".join([x["text"] for x in abstract])
-    return tokenizer.tokenize(abstract)
+    sentences = sent_tokenize(abstract)
+
+    print(sentences)
+
+    # Sometimes the abstract has missing fullstops, tries to salvage that.
+    if len(sentences) == 1:
+        sentences = split_fullstopless(abstract)
+
+        print()
+        print(sentences)
+    print("**************************************")
+
+    return sentences
 
 
 def get_doc_id(metadata: Dict[str, str]) -> str:
@@ -185,15 +259,11 @@ def remove_duplicates(docs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return docs
 
 
-def process_hits(
-    hits: Dict[str, Any], tokenizer: nltk.tokenize.punkt.PunktSentenceTokenizer
-) -> List[Dict[str, Any]]:
+def process_hits(hits: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Processes the hits from a query.
 
     Args:
         hits (Dict[str, Any]): The hits from a query.
-        tokenizer (nltk.tokenize.punkt.PunktSentenceTokenizer):
-            Splits text into sentences.
 
     Returns:
         List[Dict[str, Any]]: List of documents.
@@ -210,7 +280,7 @@ def process_hits(
         doc = {
             "doc_id": int(k),
             "title": metadata["title"],
-            "abstract": get_sentences(metadata, tokenizer),
+            "abstract": get_sentences(metadata),
             "journal": metadata["journal"],
             "publish_time": metadata["publish_time"],
             "aliases": [],
@@ -342,12 +412,15 @@ def write_claim(
                 "id": claim_id,
                 "claim": claim,
                 "doc_ids": [d["doc_id"] for d in docs],
-            })
+            }
+        )
         + "\n"
     )
 
 
-def write_doc(file: TextIO, doc: Dict[str, Any], written_docs: List[int]) -> None:
+def write_doc(
+    file: TextIO, doc: Dict[str, Any], written_docs: List[int]
+) -> None:
     """Writes the given document representation to the given file.
 
     Args:
@@ -368,8 +441,10 @@ def retrieval(args: argparse.Namespace) -> None:
         args (argparse.Namespace): The provided arguments.
     """
 
-    nltk.download("punkt")
-    stokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
+    download("averaged_perceptron_tagger")
+    download("maxent_ne_chunker")
+    download("words")
+    download("stopwords")
 
     searcher = LuceneSearcher(args.index)
 
@@ -392,8 +467,10 @@ def retrieval(args: argparse.Namespace) -> None:
     ) as co:
         for index, row in tqdm(claims.iterrows(), total=claims.shape[0]):
             claim = row[args.claim_col]
-            hits = searcher.search(claim, args.ninit if args.ninit else args.nkeep)
-            docs = process_hits(hits, stokenizer)
+            hits = searcher.search(
+                claim, args.ninit if args.ninit else args.nkeep
+            )
+            docs = process_hits(hits)
             if args.rerank:
                 docs = rerank(
                     claim,
