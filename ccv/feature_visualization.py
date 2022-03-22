@@ -330,7 +330,7 @@ def get_features(args: argparse.Namespace) -> None:
                 try:
                     d["publish_time"] = doc["publish_time"].strftime("%Y-%m-%d")
                 except ValueError:
-                    d["publish_time"] = "0000-00-00"
+                    d["publish_time"] = None
                 d["journal"] = doc["journal"]
 
                 info["docs"][doc_id] = d

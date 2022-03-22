@@ -2,6 +2,7 @@
 features extracted in feature_visualization.py"""
 
 
+from datetime import datetime
 from typing import Dict, Any, List
 from statistics import mean
 
@@ -27,11 +28,16 @@ def get_doc_values(doc: Dict[str, Any]) -> List[float]:
     values.append(mean(doc["ainfo"]["citationCounts"]))
     values.append(mean(doc["ainfo"]["hIndices"]))
 
+    date = doc.get("publish_time", None)
+    values.append(
+        None if not date else datetime.strptime(date, "%Y-%m-%d").timestamp()
+    )
+
     return values
 
 
 def scale(
-    val: float, omin: float, omax: float, nmin: float, nmax: float
+    val: float, omin: float, omax: float, nmin: float = 0, nmax: float = 1
 ) -> float:
     """Takes a value and scales it from range [omin, omax] to [nmin, nmax]
 
@@ -39,14 +45,34 @@ def scale(
         val (float): Value to scale.
         omin (float): Old minimum.
         omax (float): Old maximum.
-        nmin (float): New minimum.
-        nmax (float): Old maximum.
+        nmin (float): New minimum. Default 0.
+        nmax (float): New maximum. Default 1.
 
     Returns:
         float: Scaled value.
     """
 
     return nmin + (nmax - nmin) * (val - omin) / (omax - omin)
+
+
+def scale_values(
+    values: List[float], nmin: float = 0, nmax: float = 1,
+) -> List[float]:
+    """Takes a list of values and scales them from their original range
+    to [nmin, nmax].
+
+    Args:
+        values (List[float]): Values to scale.
+        nmin (float): New minimum. Default 0.
+        nmax (float): New maximum. Default 1.
+
+    Returns:
+        List[float]: Scaled values.
+    """
+
+    omin = min([v for v in values if v])
+    omax = max([v for v in values if v])
+    return [0 if not v else scale(v, omin, omax, nmin, nmax) for v in values]
 
 
 def compute_importance_scores(
@@ -62,15 +88,29 @@ def compute_importance_scores(
             value.
     """
 
-    values = {id: set(get_doc_values(doc)) for id, doc in docs.items()}
+    # Retrieve attribute values
+    values = {id: get_doc_values(doc) for id, doc in docs.items()}
+    print(values)
 
-    # todo: scale each attr.
+    # Scale attribute values
+    scaled = [scale_values(attr_vals) for attr_vals in zip(*values.values())]
 
-    # todo: combine attrs with weighted average.
+    # Back to attributes for each document.
+    values = dict(zip(values.keys(), zip(*scaled)))
 
-    # todo: scale weighted average to node size
+    # Simple average
+    values = {k: mean(v) for k, v in values.items()}
 
-    return None
+    # Scale to node size
+    scaled = scale_values(values.values(), nmin=BASE_SIZE, nmax=BASE_SIZE * 3)
+
+    # Back to attribute for each document.
+    values = dict(zip(values.keys(), scaled))
+
+    # todo: add time exponential decay or something.
+    e ^ (-0 * 50)
+
+    return values
 
 
 def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
