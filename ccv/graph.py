@@ -90,7 +90,6 @@ def compute_importance_scores(
 
     # Retrieve attribute values
     values = {id: get_doc_values(doc) for id, doc in docs.items()}
-    print(values)
 
     # Scale attribute values
     scaled = [scale_values(attr_vals) for attr_vals in zip(*values.values())]
@@ -106,9 +105,6 @@ def compute_importance_scores(
 
     # Back to attribute for each document.
     values = dict(zip(values.keys(), scaled))
-
-    # todo: add time exponential decay or something.
-    e ^ (-0 * 50)
 
     return values
 
