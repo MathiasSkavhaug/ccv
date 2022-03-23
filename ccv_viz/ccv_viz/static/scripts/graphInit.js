@@ -1,7 +1,14 @@
-import { closeCardPanel } from "./cardPanel.js"
+import { scale } from "./util.js"
+
+export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"};
+export var linkType = {"0": "false", "1": "true", "2": "reference", "3": "author"};
+var baseLinkSize = 1.5;
+var minSize = 0;
+var maxSize = 0;
+var nodeSizeRange = [5,15];
 
 export function graphInit(graph, config) {
-    var graph = structuredClone(graph)
+    var currentGraph = structuredClone(graph)
 
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
@@ -15,8 +22,8 @@ export function graphInit(graph, config) {
             .attr("id", "viz")
 
     if (!config.includes("author")) {
-        graph.links = graph.links.filter(function(d) {return ["0","1","2"].includes(d.label)}) // only add true, false and reference links.
-        graph.nodes = graph.nodes.filter(function(d) {return [0,1,2].includes(d.type)}) // only add claim, document and evidence nodes.
+        currentGraph.links = currentGraph.links.filter(function(d) {return ["0","1","2"].includes(d.label)}) // only add true, false and reference links.
+        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return [0,1,2].includes(d.type)}) // only add claim, document and evidence nodes.
     }
 
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
@@ -28,21 +35,20 @@ export function graphInit(graph, config) {
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
 
-
     var link = viz.append("g")
             .attr("class", "links")
         .selectAll("line")
-            .data(graph.links)
+            .data(currentGraph.links)
             .enter()
         .append("line")
             .classed("link", true)
             .attr("class", function(d) { return d3.select(this).attr("class") + " " + linkType[d.label]})
-            .attr("stroke-width", function (d) {return d.width*1.5;})
+            .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
 
     var node = viz.append("g")
             .attr("class", "nodes")
         .selectAll("circle")
-            .data(graph.nodes)
+            .data(currentGraph.nodes)
             .enter()
         .append("circle")
             .classed("node", true)
@@ -59,11 +65,11 @@ export function graphInit(graph, config) {
         });
 
     simulation
-        .nodes(graph.nodes)
+        .nodes(currentGraph.nodes)
         .on("tick", ticked);
 
     simulation.force("link")
-        .links(graph.links);
+        .links(currentGraph.links);
 
     function ticked() {
         link
@@ -74,7 +80,8 @@ export function graphInit(graph, config) {
 
         node
             .attr("cx", function (d) {return d.x;})
-            .attr("cy", function (d) {return d.y;});
+            .attr("cy", function (d) {return d.y;})
+            .attr("r", function(d) {return scale(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
     }
 
     function dragstarted(d) {
@@ -95,15 +102,9 @@ export function graphInit(graph, config) {
     }
 
     // ### ### //
+
+    // Scale nodes to nodeSizeRange.
+    minSize = d3.min(node.data(), function (d) { return d.size; });
+    maxSize = d3.max(node.data(), function (d) { return d.size; });
+    node.attr("r", function(d) {return scale(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 };
-
-export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"}
-export var linkType = {"0": "false", "1": "true", "2": "reference", "3": "author"}
-
-export function resetGraph() {
-    d3.select("#graph-svg")
-        .selectAll("*")
-        .remove()
-
-    closeCardPanel();
-}

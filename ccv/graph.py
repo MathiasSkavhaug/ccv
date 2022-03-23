@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 from statistics import mean
 
 
-BASE_SIZE = 5
+BASE_SIZE = 0
 BASE_WIDTH = 1
 
 
@@ -101,7 +101,7 @@ def compute_importance_scores(
     values = {k: mean(v) for k, v in values.items()}
 
     # Scale to node size
-    scaled = scale_values(values.values(), nmin=BASE_SIZE, nmax=BASE_SIZE * 3)
+    scaled = scale_values(values.values(), nmin=0, nmax=1)
 
     # Back to attribute for each document.
     values = dict(zip(values.keys(), scaled))

@@ -1,5 +1,5 @@
 import { initWithLoad } from "./main.js"
-import { resetGraph } from "./graphInit.js"
+import { resetGraph } from "./util.js"
 
 export function graphSearchBarInit() {
     d3.select("#search-arrow")

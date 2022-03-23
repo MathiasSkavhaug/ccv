@@ -1,4 +1,4 @@
-import { getNeighborsOfType, getLabelBetween } from "./graphTraversal.js"
+import { getNeighborsOfType, getAttrBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
@@ -64,7 +64,7 @@ export function populateCardPanel(node, dom=true) {
             
     evidences
         .each(function(d) {
-            var label = linkType[getLabelBetween(d, node)]
+            var label = linkType[getAttrBetween(d, node, "label")]
             d3.select("#evidence-container")
             .append("div")
                 .classed("card", true)

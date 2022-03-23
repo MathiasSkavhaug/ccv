@@ -1,5 +1,5 @@
 import { init } from "./main.js"
-import { resetGraph } from "./graphInit.js"
+import { resetGraph } from "./util.js"
 
 export function graphOptionsBarInit(graph) {
     d3.select("#options-arrow")

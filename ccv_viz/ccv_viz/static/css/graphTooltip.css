@@ -19,6 +19,7 @@
     opacity: 0;
     background-color: var(--panel-color);
     border-radius: 5px;
+    pointer-events: none;
 }
 
 .tooltip.circle {
