@@ -1,10 +1,36 @@
-import { getAttrBetween, getNeighborsOfType } from "./graphTraversal.js"
+import { reheatSimulation, coolSimulation } from "./graphInit.js";
+import { getAttrBetween, getLinkBetween, getNeighborsOfType } from "./graphTraversal.js"
+import { scaleValue } from "./util.js";
 
 export function graphAlgorithmInit() {
-    iterate(); // tmp
+    var m = getWeightedAdjacencyMatrix();
+    var p = []
+    
+    var numNodes = d3.selectAll(".node.evidence").data().length
+    d3.selectAll(".node.evidence")
+    .each(function() {
+            p.push(1/numNodes)
+        });
+        
+    test(p, m);
 };
 
-var dampingFactor = 0.85;
+var counter = 0
+
+function test(p, m) {
+    counter++
+    updateEvidenceNodeScore(p);
+    
+    var n = math.exp(math.dotMultiply(1/0.5, math.multiply(math.transpose(m), p)))
+    p = math.divide(n,math.norm(n,1))
+
+    if (counter < 10) {
+        setTimeout(function() {
+            test(p, m)
+        }, 1000)
+    }
+}
+
 
 function iterate() {
     //var graph = structuredClone(graph) // Don't change original graph until after iteration.
@@ -60,3 +86,38 @@ function scoreRationaleToDoc(doc) {
 function rationaleInteraction(evidence, snapshot) {
 
 };
+
+// Gets the weighted adjacency matrix for evidence nodes.
+function getWeightedAdjacencyMatrix() {
+    var numNodes = d3.selectAll(".node.evidence").data().length
+    var m = Array(numNodes).fill().map(()=>Array(numNodes).fill())
+    d3.selectAll(".node.evidence")
+        .each(function(evi1,i) {
+            d3.selectAll(".node.evidence")
+                .each(function(evi2,j) {
+                    var link = getLinkBetween(evi1, evi2)
+                    var value = 0
+                    if (typeof link !== "undefined") {
+                        if (link["label"] == 0) {
+                            value = -link["width"]
+                        } else {
+                            value = link["width"]
+                        }
+                    }
+                    m[i][j] = value
+                })
+        })
+    return m
+}
+
+function updateEvidenceNodeScore(scores) {
+    var minSize = math.min(scores)
+    var maxSize = math.max(scores)
+
+    reheatSimulation()
+    d3.selectAll(".node.evidence")
+        .each(function(d, i) {
+            d.size = scaleValue(scores[i], minSize, maxSize, 0, 1)
+        });
+    coolSimulation()
+}

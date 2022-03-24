@@ -67,5 +67,6 @@ export function getLinkBetween(node1, node2) {
 
 // Retrieves the link attribute between two nodes.
 export function getAttrBetween(node1, node2, attr) {
-    return getLinkBetween(node1, node2)[attr]
+    var link = getLinkBetween(node1, node2)
+    return (typeof link !== "undefined") ? link[attr] : link
 }

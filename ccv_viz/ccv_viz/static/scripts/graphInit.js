@@ -1,4 +1,4 @@
-import { scale } from "./util.js"
+import { scaleValue } from "./util.js"
 
 export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"};
 export var linkType = {"0": "false", "1": "true", "2": "reference", "3": "author"};
@@ -6,6 +6,7 @@ var baseLinkSize = 1.5;
 var minSize = 0;
 var maxSize = 0;
 var nodeSizeRange = [5,15];
+export var simulation;
 
 export function graphInit(graph, config) {
     var currentGraph = structuredClone(graph)
@@ -28,7 +29,7 @@ export function graphInit(graph, config) {
 
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
 
-    var simulation = d3.forceSimulation()
+    simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {
             return d.id;
         }))
@@ -81,11 +82,14 @@ export function graphInit(graph, config) {
         node
             .attr("cx", function (d) {return d.x;})
             .attr("cy", function (d) {return d.y;})
-            .attr("r", function(d) {return scale(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
+            .transition()
+            .duration(250)
+            .ease(d3.easeLinear)
+            .attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])})
     }
 
     function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        if (!d3.event.active) reheatSimulation();
         d.fx = d.x;
         d.fy = d.y;
     }
@@ -96,7 +100,7 @@ export function graphInit(graph, config) {
     }
 
     function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
+        if (!d3.event.active) coolSimulation();
         d.fx = null;
         d.fy = null;
     }
@@ -106,5 +110,15 @@ export function graphInit(graph, config) {
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
     maxSize = d3.max(node.data(), function (d) { return d.size; });
-    node.attr("r", function(d) {return scale(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
+    node.attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 };
+
+// Reheats the simulation.
+export function reheatSimulation() {
+    simulation.alphaTarget(0.3).restart();
+}
+
+// Cools down the simulation.
+export function coolSimulation() {
+    simulation.alphaTarget(0);
+}
