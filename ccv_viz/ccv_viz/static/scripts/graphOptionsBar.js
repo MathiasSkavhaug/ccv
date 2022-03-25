@@ -1,5 +1,6 @@
 import { init } from "./main.js"
 import { resetGraph } from "./util.js"
+import { startAlgorithm, stopAlgorithm } from "./graphAlgorithm.js"
 
 export function graphOptionsBarInit(graph) {
     d3.select("#options-arrow")
@@ -7,11 +8,22 @@ export function graphOptionsBarInit(graph) {
 
     d3.select("#option-author")
         .on("click", function() {
-            toggleAuthors(graph)
+            toggleAuthors(graph);
             d3.select(this)
-                .classed("option-selected", !d3.select(this).classed("option-selected"))
-        })
-}
+                .classed("option-selected", !d3.select(this).classed("option-selected"));
+        });
+
+    d3.select("#option-algorithm")
+        .on("click", function() {
+            var active = d3.select(this).classed("option-selected")
+            if (active) {
+                stopAlgorithm();
+            } else {
+                startAlgorithm();
+            }
+            d3.select(this).classed("option-selected", !active)
+        });
+};
 
 // Hides or shows the options bar, depending on current state.
 function toggleOptionsBar() {

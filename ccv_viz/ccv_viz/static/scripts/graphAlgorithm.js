@@ -1,36 +1,55 @@
-import { reheatSimulation, coolSimulation } from "./graphInit.js";
+import { ticked } from "./graphInit.js";
 import { getAttrBetween, getLinkBetween, getNeighborsOfType } from "./graphTraversal.js"
 import { scaleValue } from "./util.js";
 
 export function graphAlgorithmInit() {
+    
+};
+
+export var algorithmActive = false
+export function startAlgorithm() {
+    algorithmActive = true
+
+    var c = 0
     var m = getWeightedAdjacencyMatrix();
     var p = []
-    
     var numNodes = d3.selectAll(".node.evidence").data().length
     d3.selectAll(".node.evidence")
     .each(function() {
             p.push(1/numNodes)
         });
+
+    test(p,m,c)
+}
+
+export function stopAlgorithm() {
+    algorithmActive = false
+
+    reset()
+}
+
+function test(p, m, c) {
+    if (algorithmActive) {
+        c++
         
-    test(p, m);
-};
+        var n = math.exp(math.dotMultiply(1/0.5, math.multiply(math.transpose(m), p)))
+        p = math.divide(n,math.norm(n,1))
 
-var counter = 0
-
-function test(p, m) {
-    counter++
-    updateEvidenceNodeScore(p);
-    
-    var n = math.exp(math.dotMultiply(1/0.5, math.multiply(math.transpose(m), p)))
-    p = math.divide(n,math.norm(n,1))
-
-    if (counter < 10) {
-        setTimeout(function() {
-            test(p, m)
-        }, 1000)
+        updateEvidenceNodeScore(p);
+        if (c < 10) {
+            setTimeout(function() {
+                test(p, m, c)
+            }, 2000)
+        }
     }
 }
 
+
+export function reset() {
+    var numNodes = d3.selectAll(".node.evidence").data().length
+    var scores = Array(numNodes).fill().map(()=>0)
+    updateEvidenceNodeScore(scores);
+}
 
 function iterate() {
     //var graph = structuredClone(graph) // Don't change original graph until after iteration.
@@ -114,10 +133,9 @@ function updateEvidenceNodeScore(scores) {
     var minSize = math.min(scores)
     var maxSize = math.max(scores)
 
-    reheatSimulation()
     d3.selectAll(".node.evidence")
         .each(function(d, i) {
             d.size = scaleValue(scores[i], minSize, maxSize, 0, 1)
         });
-    coolSimulation()
+    ticked();
 }

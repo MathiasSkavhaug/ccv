@@ -1,3 +1,4 @@
+import { algorithmActive } from "./graphAlgorithm.js";
 import { scaleValue } from "./util.js"
 
 export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"};
@@ -6,7 +7,9 @@ var baseLinkSize = 1.5;
 var minSize = 0;
 var maxSize = 0;
 var nodeSizeRange = [5,15];
-export var simulation;
+var link;
+var node;
+
 
 export function graphInit(graph, config) {
     var currentGraph = structuredClone(graph)
@@ -29,14 +32,14 @@ export function graphInit(graph, config) {
 
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
 
-    simulation = d3.forceSimulation()
+    var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {
             return d.id;
         }))
-        .force("charge", d3.forceManyBody())
+        .force("charge", d3.forceManyBody().strength(-50))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
-    var link = viz.append("g")
+    link = viz.append("g")
             .attr("class", "links")
         .selectAll("line")
             .data(currentGraph.links)
@@ -46,7 +49,7 @@ export function graphInit(graph, config) {
             .attr("class", function(d) { return d3.select(this).attr("class") + " " + linkType[d.label]})
             .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
 
-    var node = viz.append("g")
+    node = viz.append("g")
             .attr("class", "nodes")
         .selectAll("circle")
             .data(currentGraph.nodes)
@@ -72,24 +75,9 @@ export function graphInit(graph, config) {
     simulation.force("link")
         .links(currentGraph.links);
 
-    function ticked() {
-        link
-            .attr("x1", function (d) {return d.source.x;})
-            .attr("y1", function (d) {return d.source.y;})
-            .attr("x2", function (d) {return d.target.x;})
-            .attr("y2", function (d) {return d.target.y;});
-
-        node
-            .attr("cx", function (d) {return d.x;})
-            .attr("cy", function (d) {return d.y;})
-            .transition()
-            .duration(250)
-            .ease(d3.easeLinear)
-            .attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])})
-    }
 
     function dragstarted(d) {
-        if (!d3.event.active) reheatSimulation();
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
         d.fy = d.y;
     }
@@ -100,7 +88,7 @@ export function graphInit(graph, config) {
     }
 
     function dragended(d) {
-        if (!d3.event.active) coolSimulation();
+        if (!d3.event.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
     }
@@ -113,12 +101,18 @@ export function graphInit(graph, config) {
     node.attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 };
 
-// Reheats the simulation.
-export function reheatSimulation() {
-    simulation.alphaTarget(0.3).restart();
-}
+export function ticked() {
+    link
+        .attr("x1", function (d) {return d.source.x;})
+        .attr("y1", function (d) {return d.source.y;})
+        .attr("x2", function (d) {return d.target.x;})
+        .attr("y2", function (d) {return d.target.y;});
 
-// Cools down the simulation.
-export function coolSimulation() {
-    simulation.alphaTarget(0);
+    node
+        .attr("cx", function (d) {return d.x;})
+        .attr("cy", function (d) {return d.y;})
+        .transition()
+        .duration(250)
+        .ease(d3.easeLinear)
+        .attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])})
 }

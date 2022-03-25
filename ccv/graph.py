@@ -36,13 +36,13 @@ def get_doc_values(doc: Dict[str, Any]) -> List[float]:
     return values
 
 
-def scale(
-    val: float, omin: float, omax: float, nmin: float = 0, nmax: float = 1
+def scale_value(
+    value: float, omin: float, omax: float, nmin: float = 0, nmax: float = 1
 ) -> float:
     """Takes a value and scales it from range [omin, omax] to [nmin, nmax]
 
     Args:
-        val (float): Value to scale.
+        value (float): Value to scale.
         omin (float): Old minimum.
         omax (float): Old maximum.
         nmin (float): New minimum. Default 0.
@@ -52,7 +52,7 @@ def scale(
         float: Scaled value.
     """
 
-    return nmin + (nmax - nmin) * (val - omin) / (omax - omin)
+    return nmin + (nmax - nmin) * (value - omin) / (omax - omin)
 
 
 def scale_values(
@@ -72,7 +72,9 @@ def scale_values(
 
     omin = min([v for v in values if v])
     omax = max([v for v in values if v])
-    return [0 if not v else scale(v, omin, omax, nmin, nmax) for v in values]
+    return [
+        0 if not v else scale_value(v, omin, omax, nmin, nmax) for v in values
+    ]
 
 
 def compute_importance_scores(

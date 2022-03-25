@@ -1,3 +1,5 @@
+import { closeCardPanel } from "./cardPanel.js";
+
 // Resets the graph
 export function resetGraph() {
     d3.select("#graph-svg")

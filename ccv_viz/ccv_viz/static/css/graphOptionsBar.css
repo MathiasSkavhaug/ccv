@@ -21,12 +21,13 @@
     z-index: 10;
 }
 
-#option-author {
+.option-button {
     cursor: pointer;
-    width: 50%;
+    width: 32px;
+    height: 32px;
     display: block;
-    margin: 25% auto 0 auto;
-    fill: var(--graph-color)
+    fill: var(--graph-color);
+    margin: 10px auto 0 auto;
 }
 
 .option-selected {
