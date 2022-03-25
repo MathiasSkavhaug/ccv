@@ -1,3 +1,5 @@
+import { searchNested } from "./util.js"
+
 // Returns the neighbors of "node".
 export function getNeighbors(node, includeSelf = true) {
     var nodeLinks = getNodeLinks(node)
@@ -69,4 +71,40 @@ export function getLinkBetween(node1, node2) {
 export function getAttrBetween(node1, node2, attr) {
     var link = getLinkBetween(node1, node2)
     return (typeof link !== "undefined") ? link[attr] : link
+}
+
+// Returns all nodes having an id contained within ids.
+export function getNodesWithIds(ids) {
+    return d3.selectAll(".node").filter(function(d) { return ids.includes(d.id) })
+}
+
+// Returns isolated sub graphs within the main graph.
+export function getSubGraphs(nodes) {
+    var subGraphs = [];
+    getNodesWithIds(nodes)
+        .each(function(d) {
+            if (!searchNested(d.id, subGraphs)) {
+                var subGraph = [];
+                getAllConnected(d, nodes, subGraph)
+                subGraphs.push(subGraph);
+            };
+        });
+    return subGraphs;
+};
+
+// Checks if two nodes are neighbors or not.
+function isNeighbor(node1, node2) {
+    return (typeof getLinkBetween(node1, node2) !== "undefined");
+};
+
+// Returns all nodes directly or indirectly connected to the given node.
+function getAllConnected(node, nodes, subGraph) {
+    subGraph.push(node.id)
+    getNodesWithIds(nodes)
+        .filter(function(d) { return isNeighbor(d, node) })
+        .each(function(d) {
+            if (!subGraph.includes(d.id)) {
+                getAllConnected(d, nodes, subGraph);
+            }
+        });
 }

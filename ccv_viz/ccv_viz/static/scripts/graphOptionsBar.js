@@ -1,6 +1,6 @@
 import { init } from "./main.js"
 import { resetGraph } from "./util.js"
-import { startAlgorithm, stopAlgorithm } from "./graphAlgorithm.js"
+import { runSRWR } from "./graphSRWR.js"
 
 export function graphOptionsBarInit(graph) {
     d3.select("#options-arrow")
@@ -17,9 +17,10 @@ export function graphOptionsBarInit(graph) {
         .on("click", function() {
             var active = d3.select(this).classed("option-selected")
             if (active) {
-                stopAlgorithm();
+                resetGraph();
+                init(graph);
             } else {
-                startAlgorithm();
+                runSRWR();
             }
             d3.select(this).classed("option-selected", !active)
         });

@@ -2,10 +2,6 @@ import { getNeighborsOfType, getAttrBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
-export function cardPanelInit() {
-    
-}
-
 // Opens the info panel.
 export function openCardPanel() {
     d3.select("#graph-container")

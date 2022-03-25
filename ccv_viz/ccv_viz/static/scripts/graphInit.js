@@ -1,4 +1,3 @@
-import { algorithmActive } from "./graphAlgorithm.js";
 import { scaleValue } from "./util.js"
 
 export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"};
