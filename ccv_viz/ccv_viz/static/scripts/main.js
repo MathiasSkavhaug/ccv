@@ -4,6 +4,8 @@ import { graphInteractionInit } from "./graphInteraction.js"
 import { graphTooltipInit } from "./graphTooltip.js"
 import { graphSearchBarInit } from "./graphSearchBar.js"
 import { graphOptionsBarInit } from "./graphOptionsBar.js";
+import { cardPanelInit } from "./cardPanel.js"
+import { initialState } from "./initialState.js"
 
 export function initWithLoad(graphResource) {
     d3.json(graphResource, function (error, graph) {
@@ -15,11 +17,13 @@ export function initWithLoad(graphResource) {
 
 export function init(graph, config=[]) {
     graphInit(graph, config);
-    resizeInit();
     graphInteractionInit();
+    resizeInit();
+    cardPanelInit();
     graphTooltipInit();
     graphSearchBarInit();
     graphOptionsBarInit(graph);
+    initialState();
 }
 
 d3.select(window).on('load', function () {

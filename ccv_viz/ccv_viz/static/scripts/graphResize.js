@@ -1,3 +1,5 @@
+export var resizing = false
+
 export function resizeInit() {
     setTimeout(function() {
         new ResizeObserver(resizeGraph).observe(d3.select("#graph-container").node())
@@ -41,5 +43,13 @@ export function resizeGraph() {
     viz.attr("width", width).attr("height", height);
 
     // center and scale the network graph
+    resizing = true;
     zoomFit(1000);
+    setTimeout(function() {
+        resizing = false;
+    }, 1000)
+}
+
+export function isResizing() {
+    return resizing;
 }

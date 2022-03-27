@@ -2,11 +2,24 @@ import { getNeighborsOfType, getAttrBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
+export function cardPanelInit() {
+    d3.select("#card-panel-arrow")
+        .on("click", function() {
+            if (d3.select("#card-panel-arrow").classed("left")) {
+                openCardPanel();
+            } else {
+                closeCardPanel();
+            }
+        });
+};
+
 // Opens the info panel.
 export function openCardPanel() {
     d3.select("#graph-container")
         .transition()
             .style("width", "60%")
+
+    d3.select("#card-panel-arrow").classed("left", false).classed("right", true);
 }
 
 // Closes the info panel.
@@ -15,6 +28,8 @@ export function closeCardPanel() {
         .transition()
             .style("width", "100%")
     
+    d3.select("#card-panel-arrow").classed("left", true).classed("right", false);
+
     clearCardPanel();
 }
 
@@ -83,7 +98,7 @@ export function populateCardPanel(node, dom=true) {
 }
 
 // Clears the info panel.
-function clearCardPanel() {
+export function clearCardPanel() {
     d3.select("#info-panel").html("")
 }
 
