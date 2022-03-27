@@ -19,7 +19,8 @@ get_features() saved dict structure:
     "docs": {
         corpusid: {
             "label": str,
-            "evidence": [str],
+            "label_prob": float,
+            "evidence": {"text": str, "prob": float},
             "aliases": [int],
             "pinfo": {
                 "citationCount": int,

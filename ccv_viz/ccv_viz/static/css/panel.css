@@ -24,24 +24,8 @@
     background: linear-gradient(to right, white 95%, var(--document-color) 0%);
 }
 
-.card.document.true {
-    background: linear-gradient(to right, white, white 95%, var(--document-color) 95%, var(--document-color) 99%, var(--true-color) 99%);
-}
-
-.card.document.false {
-    background: linear-gradient(to right, white, white 95%, var(--document-color) 95%, var(--document-color) 99%, var(--false-color) 99%);
-}
-
 .card.evidence {
     background: linear-gradient(to right, white 95%, var(--evidence-color) 0%);
-}
-
-.card.evidence.true {
-    background: linear-gradient(to right, white, white 95%, var(--evidence-color) 95%, var(--evidence-color) 99%, var(--true-color) 99%);
-}
-
-.card.evidence.false {
-    background: linear-gradient(to right, white, white 95%, var(--evidence-color) 95%, var(--evidence-color) 99%, var(--false-color) 99%);
 }
 
 .card.author {
@@ -50,6 +34,30 @@
 
 .card-selected {
     border: 3px solid var(--selected-color);
+}
+
+.card>div {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.card>.metadata {
+    color: #707070;
+}
+
+.card-score {
+    display: inline;
+    border-radius: 3px;
+    padding: 3px;
+    color: white;
+}
+
+.card.true>.metadata>.card-score {
+    background-color: var(--true-color);
+}
+
+.card.false>.metadata>.card-score {
+    background-color: var(--false-color);
 }
 
 #info-container hr {

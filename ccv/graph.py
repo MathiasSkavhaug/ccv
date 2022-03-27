@@ -3,6 +3,7 @@ features extracted in feature_visualization.py"""
 
 
 from datetime import datetime
+from optparse import Values
 from typing import Dict, Any, List
 from statistics import mean
 
@@ -134,7 +135,15 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     for id, doc in dinfo["docs"].items():
         # Add document node
         nodes.append(
-            {"id": id, "type": 1, "text": doc["title"], "size": doc_scores[id]}
+            {
+                "id": id,
+                "type": 1,
+                "text": doc["title"],
+                "size": doc_scores[id],
+                "date": doc["publish_time"],
+                "authors": ", ".join(doc["ainfo"]["authors"].values()),
+                "journal": doc["journal"],
+            }
         )
         # Add claim-document link
         links.append(

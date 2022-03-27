@@ -1,5 +1,5 @@
-import { getNeighborsOfType, getAttrBetween } from "./graphTraversal.js"
-import { nodeHighlight } from "./graphInteraction.js"
+import { getNeighborsOfType, getAttrBetween, getNodesWithIds } from "./graphTraversal.js"
+import { nodeHighlight, setLastClicked } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
 export function cardPanelInit() {
@@ -8,7 +8,7 @@ export function cardPanelInit() {
             if (d3.select("#card-panel-arrow").classed("left")) {
                 openCardPanel();
             } else {
-                closeCardPanel();
+                closeCardPanel(false);
             }
         });
 };
@@ -23,14 +23,16 @@ export function openCardPanel() {
 }
 
 // Closes the info panel.
-export function closeCardPanel() {
+export function closeCardPanel(clear=true) {
     d3.select("#graph-container")
         .transition()
             .style("width", "100%")
     
     d3.select("#card-panel-arrow").classed("left", true).classed("right", false);
 
-    clearCardPanel();
+    if (clear) {
+        clearCardPanel();
+    }
 }
 
 // Populates the info panel.
@@ -53,18 +55,11 @@ export function populateCardPanel(node, dom=true) {
         
     var evidences = getNeighborsOfType(node, neighborType)
 
-    d3.select("#info-panel")
-        .append("div")
-            .classed("top", true)
-            .classed("card", true)
-            .classed("card-selected", true)
-            .classed(nodeType, true)
-            .html(node.text)
-            .on("click", function() {
-                d3.event.stopPropagation();
-                nodeHighlight(node);
-                moveHighlight(this);
-            })
+    var div = d3.select("#info-panel").append("div")
+    var card = appendCard(div, node, nodeType)
+    card
+        .classed("top", true)
+        .classed("card-selected", true)
 
     d3.select("#info-panel")
         .append("hr")
@@ -75,27 +70,95 @@ export function populateCardPanel(node, dom=true) {
             
     evidences
         .each(function(d) {
-            var label = linkType[getAttrBetween(d, node, "label")]
-            d3.select("#evidence-container")
-            .append("div")
-                .classed("card", true)
-                .classed("card-selected", function() {return d === node})
-                .classed(neighborType, true)
-                .classed(label, true)
-                .html(d.text)
-                .on("click", function() {
-                    d3.event.stopPropagation();
-                    nodeHighlight(d);
-                    moveHighlight(this);
-                })
-                .on("dblclick", function() {
-                    d3.event.stopPropagation();
-                    populateCardPanel(d, false);
-                })
+            var div = d3.select("#evidence-container").append("div")
+            appendCard(div, d, neighborType)
         })
+
+    populateCards();
 
     setTimeout(showCardPanel, 250)
 }
+
+function appendCard(div, node, type) {
+    if (["evidence", "document"].includes(type)) {
+        if (type == "document") {
+            var probNode = getNeighborsOfType(node, "claim").data()[0];
+        } else if (type == "evidence") {
+            var probNode = getNeighborsOfType(node, "document").data()[0];
+        }
+        var label = linkType[getAttrBetween(node, probNode, "label")];
+    }
+
+    div
+        .classed("card", true)
+        .classed(type, true)
+        .classed(label, (["evidence", "document"].includes(type)))
+        .on("click", function() {
+            d3.event.stopPropagation();
+            nodeHighlight(node);
+            moveHighlight(this);
+        })
+        .on("dblclick", function() {
+            d3.event.stopPropagation();
+            getNodesWithIds([node.id]).dispatch("click")
+        })
+        .attr("node-id", node.id)
+
+        return div
+}
+
+// Fills the cards with information.
+function populateCards() {
+    d3.selectAll(".card")
+        .each(function() {
+            var card = d3.select(this);
+            var node = d3.selectAll(".node")
+                .filter(function(d) {return d.id == card.attr("node-id")})
+            var nodeData = node.data()[0]
+            
+            card
+                .append("div")
+                    .html(nodeData.text)
+
+            if (node.classed("claim")) {return}
+                        
+            if (node.classed("document") || node.classed("evidence")) {
+                var metadata = card.append("div").classed("metadata", true)
+
+                if (node.classed("document")) {
+                    metadata
+                        .append("div")
+                        .classed("card-link", true)
+                        .append("a")
+                            .attr("href", "http://api.semanticscholar.org/corpusid:"+nodeData.id)
+                            .html("Open in Semantic Scholar")
+
+                    metadata
+                        .append("div")
+                            .classed("card-authors", true)
+                            .html(nodeData.authors)
+                            
+                    metadata
+                        .append("div")
+                            .classed("card-date-and-journal", true)
+                            .html(nodeData.date +", "+ nodeData.journal)
+                }
+
+                if (node.classed("document")) {
+                    var linkNodeData = getNeighborsOfType(nodeData, "claim").data()[0]
+                    var prob = getAttrBetween(nodeData, linkNodeData, "width")
+                } else {
+                    var linkNodeData = getNeighborsOfType(nodeData, "document").data()[0]
+                    var prob = getAttrBetween(nodeData, linkNodeData, "width")
+                }
+
+                metadata
+                    .append("div")
+                        .classed("card-score", true)
+                        .html(prob.toFixed(3))
+            }
+        })
+};
 
 // Clears the info panel.
 export function clearCardPanel() {

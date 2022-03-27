@@ -1,6 +1,8 @@
 import { getNeighbors, getNodeLinks } from "./graphTraversal.js"
-import { openCardPanel, clearCardPanel, populateCardPanel } from "./cardPanel.js"
+import { openCardPanel, closeCardPanel, clearCardPanel, populateCardPanel } from "./cardPanel.js"
 import { isResizing } from "./graphResize.js";
+
+var lastClicked;
 
 export function graphInteractionInit() {
     // When nodes are clicked highlight node and neighboring nodes and open card panel.
@@ -13,6 +15,7 @@ export function graphInteractionInit() {
             nodeHighlight(node);
             openCardPanel();
             populateCardPanel(this);
+            setLastClicked(this);
         });
 
     // When nodes are hovered over highlight node and neighboring nodes only if card panel is open and not resizing.
@@ -26,12 +29,33 @@ export function graphInteractionInit() {
         };
     });
 
-    // When no nodes are clicked reset highlight to normal and close card panel.
+    d3.selectAll(".node")
+    .on("mouseout", function () {
+        if (d3.select("#card-panel-arrow").classed("right") && !isResizing()) {
+            if (typeof lastClicked !== "undefined") {
+                d3.select(lastClicked).dispatch("click")
+            };
+        };
+    });
+
+    // When graph background is clicked reset highlight to normal
     d3.select("#graph-svg")
         .on("click", function () {
             removeHighlight();
             clearCardPanel();
         });
+
+    // When graph background is double clicked reset highlight to normal and close card panel.
+    d3.select("#graph-svg")
+    .on("dblclick", function () {
+        removeHighlight();
+        clearCardPanel();
+        closeCardPanel();
+    });
+}
+
+export function setLastClicked(node) {
+    lastClicked = node;
 }
 
 // Highlight node and neighboring nodes.
