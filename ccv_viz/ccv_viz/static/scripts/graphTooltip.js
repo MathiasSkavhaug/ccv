@@ -1,6 +1,8 @@
 export function graphTooltipInit() {
     d3.select("#graph-tooltip-container .question-mark")
-        .on("click", toggleTooltip)
+        .on("click", toggleTooltip);
+
+    toggleTooltip();
 }
 
 
