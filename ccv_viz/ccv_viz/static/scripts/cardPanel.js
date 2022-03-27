@@ -79,6 +79,7 @@ export function populateCardPanel(node, dom=true) {
     setTimeout(showCardPanel, 250)
 }
 
+// Appends the card associated with node "node" of type "type" to div "div".
 function appendCard(div, node, type) {
     if (["evidence", "document"].includes(type)) {
         if (type == "document") {

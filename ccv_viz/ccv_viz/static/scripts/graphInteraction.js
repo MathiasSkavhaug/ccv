@@ -29,6 +29,7 @@ export function graphInteractionInit() {
         };
     });
 
+    // When no longer hovering over node, revert to last clicked node.
     d3.selectAll(".node")
     .on("mouseout", function () {
         if (d3.select("#card-panel-arrow").classed("right") && !isResizing()) {
@@ -38,7 +39,7 @@ export function graphInteractionInit() {
         };
     });
 
-    // When graph background is clicked reset highlight to normal
+    // When graph background is clicked reset highlight to normal.
     d3.select("#graph-svg")
         .on("click", function () {
             removeHighlight();
@@ -54,6 +55,7 @@ export function graphInteractionInit() {
     });
 }
 
+// Changes the last clicked node to node.
 export function setLastClicked(node) {
     lastClicked = node;
 }
