@@ -73,7 +73,7 @@ text.text {
     font-size: 6px;
     fill: var(--border-color);
     stroke: var(--panel-color);
-    stroke-width: 0.2px;
+    stroke-width: 0.1px;
     text-anchor: middle;
 }
 

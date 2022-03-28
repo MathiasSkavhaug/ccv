@@ -2,8 +2,9 @@
 features extracted in feature_visualization.py"""
 
 
+from ctypes import Union
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 from statistics import mean
 
 
@@ -77,7 +78,39 @@ def scale_values(
     ]
 
 
-def compute_importance_scores(
+def scale_dict_with_values(
+    dv: Dict[any, List[Union[int, float]]]
+) -> Dict[str, float]:
+    """Scales each attribute then combines each key's scaled attributes into
+    one value then scales all keys' values.
+
+    Args:
+        dv (Dict[Any, List[int, float]]): Dictionary containing lists
+            of numbers to scale as values.
+
+    Returns:
+        Dict[str, float]: A dictionary where each key has it's scaled value.
+    """
+
+    # Scale attribute values
+    scaled = [scale_values(attr_vals) for attr_vals in zip(*dv.values())]
+
+    # Back to attributes for each document.
+    values = dict(zip(dv.keys(), zip(*scaled)))
+
+    # Simple average
+    values = {k: mean(v) for k, v in values.items()}
+
+    # Scale to node size
+    scaled = scale_values(values.values(), nmin=0, nmax=1)
+
+    # Back to attribute for each document.
+    values = dict(zip(values.keys(), scaled))
+
+    return values
+
+
+def compute_document_scores(
     docs: Dict[str, Dict[str, Any]]
 ) -> Dict[str, float]:
     """Computes the importance score for the given documents.
@@ -93,20 +126,32 @@ def compute_importance_scores(
     # Retrieve attribute values
     values = {id: get_doc_values(doc) for id, doc in docs.items()}
 
-    # Scale attribute values
-    scaled = [scale_values(attr_vals) for attr_vals in zip(*values.values())]
+    values = scale_dict_with_values(values)
 
-    # Back to attributes for each document.
-    values = dict(zip(values.keys(), zip(*scaled)))
+    return values
 
-    # Simple average
-    values = {k: mean(v) for k, v in values.items()}
 
-    # Scale to node size
-    scaled = scale_values(values.values(), nmin=0, nmax=1)
+def compute_author_scores(docs: Dict[str, Dict[str, Any]]) -> Dict[str, float]:
+    """Computes the importance score for the given documents's authors.
 
-    # Back to attribute for each document.
-    values = dict(zip(values.keys(), scaled))
+    Args:
+        docs (List[Dict[str, Any]]): List of documents.
+
+    Returns:
+        Dict[str, float]: Dict with author_id as key and importance score as
+            value.
+    """
+    values = {}
+    for _, doc in docs.items():
+        ainfo = doc["ainfo"]
+        for i, aid in enumerate(ainfo["authors"].keys()):
+            values[aid] = [
+                ainfo["paperCounts"][i],
+                ainfo["citationCounts"][i],
+                ainfo["hIndices"][i],
+            ]
+
+    values = scale_dict_with_values(values)
 
     return values
 
@@ -125,7 +170,8 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     lmap = {"SUPPORT": "true", "CONTRADICT": "false"}
     nodes, links = [], []
 
-    doc_scores = compute_importance_scores(dinfo["docs"])
+    doc_scores = compute_document_scores(dinfo["docs"])
+    author_scores = compute_author_scores(dinfo["docs"])
 
     # Add claim node
     nodes.append(
@@ -213,7 +259,12 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     for aid, docs in authors.items():
         # create author node.
         nodes.append(
-            {"id": aid, "type": "author", "text": amap[aid], "size": BASE_SIZE}
+            {
+                "id": aid,
+                "type": "author",
+                "text": amap[aid],
+                "size": author_scores[aid],
+            }
         )
         for doc in docs:
             # create author-document link
