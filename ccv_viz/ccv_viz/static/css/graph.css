@@ -26,6 +26,10 @@
     stroke: var(--false-color);
 }
 
+.link.evidence {
+    stroke: var(--evidence-color);
+}
+
 .link.reference {
     stroke: var(--reference-color);
 }
@@ -33,6 +37,7 @@
 .link.author {
     stroke: var(--author-color);
 }
+
 
 .node {
     stroke: var(--border-color);

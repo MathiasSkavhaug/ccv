@@ -1,14 +1,11 @@
 import { scaleValue } from "./util.js"
 
-export var nodeType = {"0": "claim", "1": "document", "2": "evidence", "3": "author"};
-export var linkType = {"0": "false", "1": "true", "2": "reference", "3": "author"};
 var baseLinkSize = 1.5;
 var minSize = 0;
 var maxSize = 0;
 var nodeSizeRange = [5,15];
 var link;
 var node;
-
 
 export function graphInit(graph, config) {
     var currentGraph = structuredClone(graph)
@@ -25,8 +22,8 @@ export function graphInit(graph, config) {
             .attr("id", "viz")
 
     if (!config.includes("author")) {
-        currentGraph.links = currentGraph.links.filter(function(d) {return ["0","1","2"].includes(d.label)}) // only add true, false and reference links.
-        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return [0,1,2].includes(d.type)}) // only add claim, document and evidence nodes.
+        currentGraph.links = currentGraph.links.filter(function(d) {return ["true","false","evidence","reference"].includes(d.label)})
+        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return ["claim", "document", "evidence"].includes(d.type)})
     }
 
     // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
@@ -45,7 +42,7 @@ export function graphInit(graph, config) {
             .enter()
         .append("line")
             .classed("link", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + linkType[d.label]})
+            .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.label})
             .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
 
     node = viz.append("g")
@@ -55,7 +52,7 @@ export function graphInit(graph, config) {
             .enter()
         .append("circle")
             .classed("node", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + nodeType[d.type]})
+            .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.type})
             .attr("r", function(d) {return d.size})
             .call(d3.drag()
                 .on("start", dragstarted)

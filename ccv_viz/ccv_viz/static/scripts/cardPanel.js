@@ -1,6 +1,5 @@
 import { getNeighborsOfType, getAttrBetween, getNodesWithIds } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
-import { linkType } from "./graphInit.js"
 
 export function cardPanelInit() {
     d3.select("#card-panel-arrow")
@@ -43,13 +42,13 @@ export function populateCardPanel(node, dom=true) {
         var node = d3.select(node).data()[0]
     }
     
-    if (node.type == "0") { // claim
+    if (node.type == "claim") {
         var nodeType = "claim", neighborType = "document"
-    } else if (node.type == "1") { // document
+    } else if (node.type == "document") {
         var nodeType = "document", neighborType = "evidence"
-    } else if (node.type == "2") { // evidence
+    } else if (node.type == "evidence") {
         var nodeType = "evidence", neighborType = "evidence"
-    } else if (node.type == "3") {
+    } else if (node.type == "author") {
         var nodeType = "author", neighborType = "author"
     }
         
@@ -88,7 +87,7 @@ export function populateCardPanel(node, dom=true) {
 function appendCard(div, node, probNode, type) {
     console.log
     if (["evidence", "document"].includes(type)) {
-        var label = linkType[getAttrBetween(node, probNode, "label")];
+        var label = getAttrBetween(node, probNode, "label");
     }
 
     div

@@ -73,6 +73,10 @@
     background-color: var(--false-color);
 }
 
+.tooltip.line.evidence {
+    background-color: var(--evidence-color);
+}
+
 .tooltip.line.reference {
     background-color: var(--reference-color);
 }

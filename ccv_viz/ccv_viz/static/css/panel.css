@@ -31,7 +31,7 @@
 }
 
 .card.author {
-    background-color: var(--author-color);
+    background: linear-gradient(to right, white 95%, var(--author-color) 0%);
 }
 
 .card-selected {
@@ -70,6 +70,10 @@
 
 .card.false>.metadata>.card-score {
     background-color: var(--false-color);
+}
+
+.card.evidence>.metadata>.card-score {
+    background-color: var(--evidence-color);
 }
 
 #info-container hr {

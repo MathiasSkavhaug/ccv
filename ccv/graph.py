@@ -122,21 +122,26 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         Dict[str, Dict[str, any]]: The graph as a dictionary.
     """
 
-    lmap = {"SUPPORT": 1, "CONTRADICT": 0}
+    lmap = {"SUPPORT": "true", "CONTRADICT": "false"}
     nodes, links = [], []
 
     doc_scores = compute_importance_scores(dinfo["docs"])
 
     # Add claim node
     nodes.append(
-        {"id": "Claim", "type": 0, "text": dinfo["claim"], "size": BASE_SIZE}
+        {
+            "id": "Claim",
+            "type": "claim",
+            "text": dinfo["claim"],
+            "size": BASE_SIZE,
+        }
     )
     for id, doc in dinfo["docs"].items():
         # Add document node
         nodes.append(
             {
                 "id": id,
-                "type": 1,
+                "type": "document",
                 "text": doc["title"],
                 "size": doc_scores[id],
                 "date": doc["publish_time"],
@@ -158,7 +163,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             nodes.append(
                 {
                     "id": f"{id}_{i}",
-                    "type": 2,
+                    "type": "evidence",
                     "text": e["text"],
                     "size": BASE_SIZE,
                 }
@@ -168,7 +173,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 {
                     "source": f"{id}_{i}",
                     "target": id,
-                    "label": lmap[doc["label"]],
+                    "label": "evidence",
                     "width": e["prob"],
                 }
             )
@@ -180,7 +185,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 {
                     "source": k,
                     "target": rlink["reference"],
-                    "label": 2,
+                    "label": "reference",
                     "width": BASE_WIDTH,
                 }
             )
@@ -208,12 +213,17 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     for aid, docs in authors.items():
         # create author node.
         nodes.append(
-            {"id": aid, "type": 3, "text": amap[aid], "size": BASE_SIZE}
+            {"id": aid, "type": "author", "text": amap[aid], "size": BASE_SIZE}
         )
         for doc in docs:
             # create author-document link
             links.append(
-                {"target": aid, "source": doc, "label": 3, "width": BASE_WIDTH}
+                {
+                    "target": aid,
+                    "source": doc,
+                    "label": "author",
+                    "width": BASE_WIDTH,
+                }
             )
 
     d = {}
