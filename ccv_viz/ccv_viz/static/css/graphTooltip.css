@@ -80,3 +80,7 @@
 .tooltip.line.reference {
     background-color: var(--reference-color);
 }
+
+.tooltip.line.author {
+    background-color: var(--author-color);
+}

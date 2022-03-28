@@ -23,9 +23,9 @@ export function init(graph, config=[]) {
     graphTooltipInit();
     graphSearchBarInit();
     graphOptionsBarInit(graph);
-    initialState();
 }
 
 d3.select(window).on('load', function () {
     initWithLoad("/static/data/graph.json")
+    initialState();
 })

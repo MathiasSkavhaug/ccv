@@ -40,6 +40,11 @@ function toggleOptionsBar() {
     d3.select("#options-arrow")
         .classed("right", !(newState == "3rem"))
         .classed("left", (newState == "3rem"))
+
+    d3.selectAll(".option-button")
+        .transition()
+        .duration(250)
+        .style("width", (newState == "3rem") * 32 + "px")
 }
 
 // Toggle author nodes.
