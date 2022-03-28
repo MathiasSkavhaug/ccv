@@ -6,6 +6,7 @@ var maxSize = 0;
 var nodeSizeRange = [5,15];
 var link;
 var node;
+var text;
 
 export function graphInit(graph, config) {
     var currentGraph = structuredClone(graph)
@@ -36,7 +37,7 @@ export function graphInit(graph, config) {
         .force("center", d3.forceCenter(width / 2, height / 2));
 
     link = viz.append("g")
-            .attr("class", "links")
+            .classed("links", true)
         .selectAll("line")
             .data(currentGraph.links)
             .enter()
@@ -46,7 +47,7 @@ export function graphInit(graph, config) {
             .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
 
     node = viz.append("g")
-            .attr("class", "nodes")
+            .classed("nodes", true)
         .selectAll("circle")
             .data(currentGraph.nodes)
             .enter()
@@ -59,6 +60,16 @@ export function graphInit(graph, config) {
                 .on("drag", dragged)
                 .on("end", dragended));
 
+    text = viz.append("g")
+            .classed("texts", true)
+        .selectAll("text")
+            .data(currentGraph.nodes)
+            .enter()
+            .filter(function(d) {return d.type == "document"})
+        .append("text")
+            .classed("text", true)
+            .text(function(d) { return d.authors.split(",")[0].split(" ").pop() +", "+ d.date.split("-").slice(0,2).join("-") })
+                
     node.append("title")
         .text(function (d) {
             return d.text;
@@ -111,4 +122,7 @@ export function ticked() {
         .duration(250)
         .ease(d3.easeLinear)
         .attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])})
+
+    text.attr("x", function(d) { return d.x })
+        .attr("y", function(d) { return d.y - 2 - scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 }

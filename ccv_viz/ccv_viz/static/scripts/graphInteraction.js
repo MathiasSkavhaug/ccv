@@ -65,7 +65,7 @@ export function nodeHighlight(node) {
     var neighbors = getNeighbors(node)
     var nodeLinks = getNodeLinks(node)
 
-    d3.selectAll(".node")
+    d3.selectAll("circle.node")
         .classed("unselected", function (d) {
             return !neighbors.has(d)
         })
@@ -73,9 +73,14 @@ export function nodeHighlight(node) {
             return d === node
         })
 
-    d3.selectAll(".link")
+    d3.selectAll("line.link")
         .classed("unselected", function (d) {
             return !nodeLinks.data().includes(d)
+        })
+
+    d3.selectAll("text.text")
+        .classed("unselected", function (d) {
+            return !neighbors.has(d)
         })
 }
 
