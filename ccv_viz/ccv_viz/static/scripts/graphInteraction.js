@@ -33,7 +33,7 @@ export function graphInteractionInit() {
     d3.selectAll(".node")
     .on("mouseout", function () {
         if (d3.select("#card-panel-arrow").classed("right") && !isResizing()) {
-            if (typeof lastClicked !== "undefined") {
+            if (typeof lastClicked !== "undefined" && lastClicked != this) {
                 d3.select(lastClicked).dispatch("click")
             };
         };

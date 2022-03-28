@@ -3,7 +3,6 @@ features extracted in feature_visualization.py"""
 
 
 from datetime import datetime
-from optparse import Values
 from typing import Dict, Any, List
 from statistics import mean
 

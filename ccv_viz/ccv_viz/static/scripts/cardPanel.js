@@ -1,5 +1,5 @@
 import { getNeighborsOfType, getAttrBetween, getNodesWithIds } from "./graphTraversal.js"
-import { nodeHighlight, setLastClicked } from "./graphInteraction.js"
+import { nodeHighlight } from "./graphInteraction.js"
 import { linkType } from "./graphInit.js"
 
 export function cardPanelInit() {
@@ -55,9 +55,14 @@ export function populateCardPanel(node, dom=true) {
         
     var evidences = getNeighborsOfType(node, neighborType)
 
+    if (nodeType == "document") {
+        var probNode = getNeighborsOfType(node, "claim").data()[0];
+    } else if (nodeType == "evidence") {
+        var probNode = getNeighborsOfType(node, "document").data()[0];
+    }
+
     var div = d3.select("#info-panel").append("div")
-    var card = appendCard(div, node, nodeType)
-    card
+    appendCard(div, node, probNode, nodeType)
         .classed("top", true)
         .classed("card-selected", true)
 
@@ -71,7 +76,7 @@ export function populateCardPanel(node, dom=true) {
     evidences
         .each(function(d) {
             var div = d3.select("#evidence-container").append("div")
-            appendCard(div, d, neighborType)
+            appendCard(div, d, node, neighborType)
         })
 
     populateCards();
@@ -80,13 +85,9 @@ export function populateCardPanel(node, dom=true) {
 }
 
 // Appends the card associated with node "node" of type "type" to div "div".
-function appendCard(div, node, type) {
+function appendCard(div, node, probNode, type) {
+    console.log
     if (["evidence", "document"].includes(type)) {
-        if (type == "document") {
-            var probNode = getNeighborsOfType(node, "claim").data()[0];
-        } else if (type == "evidence") {
-            var probNode = getNeighborsOfType(node, "document").data()[0];
-        }
         var label = linkType[getAttrBetween(node, probNode, "label")];
     }
 
@@ -127,22 +128,36 @@ function populateCards() {
                 var metadata = card.append("div").classed("metadata", true)
 
                 if (node.classed("document")) {
-                    metadata
+                    var div = metadata.append("div")
+                    div
                         .append("div")
                         .classed("card-link", true)
+                        .on("click", function() {
+                            d3.event.stopPropagation();
+                        })
                         .append("a")
                             .attr("href", "http://api.semanticscholar.org/corpusid:"+nodeData.id)
+                            .attr("target", "_blank")
                             .html("Open in Semantic Scholar")
 
-                    metadata
+                    div
                         .append("div")
                             .classed("card-authors", true)
                             .html(nodeData.authors)
                             
-                    metadata
+                    div
                         .append("div")
-                            .classed("card-date-and-journal", true)
-                            .html(nodeData.date +", "+ nodeData.journal)
+                            .classed("card-journal", true)
+                            .html(nodeData.journal)
+
+                    div
+                        .append("div")
+                            .classed("card-date", true)
+                            .html(nodeData.date)
+
+                } else {
+                    // Dummy div
+                    metadata.append("div")
                 }
 
                 if (node.classed("document")) {
