@@ -76,6 +76,14 @@
     background-color: var(--evidence-color);
 }
 
+.card.evidence.true>.metadata>.card-score {
+    background-color: var(--true-color) !important;
+}
+
+.card.evidence.false>.metadata>.card-score {
+    background-color: var(--false-color) !important;
+}
+
 #info-container hr {
     border: none;
     border-top: 1px solid var(--graph-color);
