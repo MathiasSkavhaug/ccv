@@ -19,6 +19,11 @@ export function openCardPanel() {
             .style("width", "60%")
 
     d3.select("#card-panel-arrow").classed("left", false).classed("right", true);
+
+    d3.selectAll(".card")
+        .transition()
+        .duration(350)
+        .style("opacity", 1)
 }
 
 // Closes the info panel.
@@ -28,6 +33,11 @@ export function closeCardPanel(clear=true) {
             .style("width", "100%")
     
     d3.select("#card-panel-arrow").classed("left", true).classed("right", false);
+
+    d3.selectAll(".card")
+        .transition()
+        .duration(100)
+        .style("opacity", 0)
 
     if (clear) {
         clearCardPanel();
@@ -85,7 +95,6 @@ export function populateCardPanel(node, dom=true) {
 
 // Appends the card associated with node "node" of type "type" to div "div".
 function appendCard(div, node, probNode, type) {
-    console.log
     if (["evidence", "document"].includes(type)) {
         var label = getAttrBetween(node, probNode, "label");
     }
