@@ -48,7 +48,7 @@
 }
 
 .card-link, .card-authors, .card-journal, .card-date, .card-score {
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
 }
 
 .card-link>a:link, .card-link>a:visited {
