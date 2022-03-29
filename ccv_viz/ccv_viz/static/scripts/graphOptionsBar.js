@@ -1,15 +1,15 @@
 import { init } from "./main.js"
-import { resetGraph } from "./util.js"
+import { resetGraph, resetNodeSize } from "./util.js"
 import { runSRWR } from "./graphSRWR.js"
 import { getNeighborsOfType, getNodesWithIds } from "./graphTraversal.js";
 
-export function graphOptionsBarInit(graph) {
+export function graphOptionsBarInit() {
     d3.select("#options-arrow")
         .on("click", toggleOptionsBar)
 
     d3.select("#option-author")
         .on("click", function() {
-            toggleAuthors(graph);
+            toggleAuthors();
             d3.select(this)
                 .classed("option-selected", !d3.select(this).classed("option-selected"));
         });
@@ -18,8 +18,7 @@ export function graphOptionsBarInit(graph) {
         .on("click", function() {
             var active = d3.select(this).classed("option-selected")
             if (active) {
-                resetGraph();
-                init(graph);
+                resetNodeSize();
             } else {
                 runSRWR();
             }
@@ -41,6 +40,11 @@ export function graphOptionsBarInit(graph) {
     d3.select("#option-author").append("title").text("Toggle authors");
     d3.select("#option-algorithm").append("title").text("Toggle SRWR");
     d3.select("#option-date").append("title").text("Toggle publish date colors");
+
+    // Date option is already selected.
+    if (d3.select("#option-date").classed("option-selected")) {
+        changeToDateColors();
+    }
 };
 
 // Hides or shows the options bar, depending on current state.
@@ -65,12 +69,12 @@ function toggleOptionsBar() {
 }
 
 // Toggle author nodes.
-function toggleAuthors(graph) {
+function toggleAuthors() {
     resetGraph()
     if (d3.select("#option-author").classed("option-selected")) {
-        init(graph)
+        init()
     } else {
-        init(graph, ["author"])
+        init(["author"])
     }
 }
 

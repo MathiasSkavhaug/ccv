@@ -144,7 +144,7 @@ function populateCards() {
                             d3.event.stopPropagation();
                         })
                         .append("a")
-                            .attr("href", "http://api.semanticscholar.org/corpusid:"+nodeData.id)
+                            .attr("href", "https://api.semanticscholar.org/corpusid:"+nodeData.id)
                             .attr("target", "_blank")
                             .html("Open in Semantic Scholar")
 

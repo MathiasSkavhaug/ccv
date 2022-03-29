@@ -7,22 +7,25 @@ import { graphOptionsBarInit } from "./graphOptionsBar.js";
 import { cardPanelInit } from "./cardPanel.js"
 import { initialState } from "./initialState.js"
 
+export var originalGraph;
+
 export function initWithLoad(graphResource) {
     d3.json(graphResource, function (error, graph) {
         if (error) throw error;
 
-        init(graph)
+        originalGraph = graph;
+        init()
     });
 };
 
-export function init(graph, config=[]) {
-    graphInit(graph, config);
+export function init(config=[]) {
+    graphInit(config);
     graphInteractionInit();
     resizeInit();
     cardPanelInit();
     graphTooltipInit();
     graphSearchBarInit();
-    graphOptionsBarInit(graph);
+    graphOptionsBarInit();
 }
 
 d3.select(window).on('load', function () {

@@ -1,37 +1,54 @@
+import { ticked } from "./graphInit.js";
 import { getAttrBetween, getLinkBetween, getNeighborsOfType, getSubGraphs, getNodesWithIds } from "./graphTraversal.js"
 import { scaleValue, scaleValues } from "./util.js";
 
 // Runs the SRWR algorithm on the evidence nodes only graph.
+// c: restart probability of the surfer.
 // beta: parameter for the uncertainty of "the enemy of my enemy is my friend".
 // gamma: parameter for the uncertainty of "the friend of my enemy is my enemy".
 // epsilon: stopping threshold.
-export function runSRWR(beta=0.5, gamma=0.9, epsilon) {
+export function runSRWR(c = 0.85, beta=0.5, gamma=0.9, epsilon=0.00001) {
+    var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
+
     distributeDocScores();
 
     var evidences = d3.selectAll(".node.evidence").data().map(function(d) {return d.id});
     var subGraphs = getSubGraphs(evidences);
 
-    var importanceMass = getImportanceMass(subGraphs);
-    
-    var scores = [];
+    var subGraphScores = [];
     subGraphs.forEach(function(subGraph) {
-        if (subGraph.length == 1) {return} // No point in doing computations for one node.
+        var subGraphSum = math.sum(getNodesWithIds(subGraph).data().map(n => n.size))
 
-        var initialImportance = scaleValues(getNodesWithIds(subGraph).data().map(function(d) {return d.size}))
+        var scores = getNormalizedSubGraphScores(subGraph);
+        var initialImportance = scores;
 
-        var A = getSignedAdjacencyMatrix(subGraph);
-        var r = getSemiRowNormalizedMatrices(A);
+        // Only do computation if sub-graph size is greater than 1.
+        if (subGraph.length !== 1) {
+            var A = getSignedAdjacencyMatrix(subGraph);
+            var r = getSemiRowNormalizedMatrices(A);
+            var APos = r.APos
+            var ANeg = r.ANeg
 
-        var converged = false;
-        while (!converged) {
-            r = runSRWRIteration(r.APos, r.ANeg, initialImportance, beta, gamma, epsilon);
-            converged = r.converged
+            var rP = initialImportance
+            var rN = Array(rP.length).fill(0)
+            var rMark = t(math.matrix([rP,rN]))
 
-        };
-        scores.push(r.scores)
+            do {
+                rP = a(dm((1 - c), a(a(m(t(APos), rP), dm(beta, m(t(ANeg), rN))), dm((1 - gamma), m(t(APos), rN)))), dm(c, initialImportance))
+                rN = dm((1 - c), a(a(m(t(ANeg), rP), dm(beta, m(t(APos), rN))), dm((1 - gamma), m(t(ANeg), rN))))
+                r = t(math.matrix([rP,rN]))
+                rMark = r;
+            } while (math.norm(s(r, rMark), 1) > epsilon);
+            
+            scores = s(rP, rN)._data
+        }
+        
+        scores = getUnnormalizedSubGraphScores(scores, subGraphSum)
+
+        subGraphScores.push(scores)
     });
     
-    updateEvidenceSize(scores, importanceMass);
+    updateEvidenceSize(subGraphScores, subGraphs);
 
     collectDocScores();
 };
@@ -39,7 +56,7 @@ export function runSRWR(beta=0.5, gamma=0.9, epsilon) {
 // Distributes each document's score to it's rationale(s).
 function distributeDocScores() {
     d3.selectAll(".node.document")
-        .each(function(doc) {
+    .each(function(doc) {
             var totalLinkProb = 0;
             var evidences = getNeighborsOfType(doc, "evidence");
 
@@ -52,21 +69,20 @@ function distributeDocScores() {
                     evi.size = doc.size * getAttrBetween(doc, evi, "width")/totalLinkProb;
                 });
         });
+    // Make sure graph is updated.
+    ticked();
 };
 
-// Gets the sum of importance scores for each sub-graph.
-function getImportanceMass(subGraphs) {
-    var importanceMass = [];
-    subGraphs.forEach(function(subGraph) {
-        var mass = 0;
-        getNodesWithIds(subGraph)
-            .each(function(d) {
-                mass += d.size;
-            });
-        importanceMass.push(mass)
-    });
-    return importanceMass;
-};
+// Retrieves the normalized node scores for the sub-graph.
+function getNormalizedSubGraphScores(subGraph) {
+    var scores = getNodesWithIds(subGraph).data().map(n => n.size)
+    return scores.map(s => s/math.sum(scores))
+}
+
+// Retrieves the unnormalized node scores for the sub-graph.
+function getUnnormalizedSubGraphScores(scores, subGraphSum) {
+    return scores.map(s => s*subGraphSum)
+}
 
 // Retrieves the signed adjacency matrix for the graph consisting of "nodes".
 function getSignedAdjacencyMatrix(nodes) {
@@ -107,30 +123,31 @@ function runSRWRIteration(APos, ANeg, initialImportance, beta, gamma, epsilon) {
     
 }
 
-// todo: update
 // Combine each document's rationales(s)'s score(s) into document score.
 function collectDocScores() {
-    var newSize = 0;
-    var probSum = 0;
+    d3.selectAll(".node.document")
+        .each(function(doc) {
+            var evidences = getNeighborsOfType(doc, "evidence");
 
-    getNeighborsOfType(doc, "evidence")
-        .each(function(evi) {
-            var linkProb = getAttrBetween(doc, evi, "width");
-            newSize += evi.size;
-            probSum += linkProb;
+            var newSize = 0;
+            evidences
+                .each(function(evi) {
+                    newSize += evi.size
+                });
+            doc.size = newSize
         });
-    doc.size = newSize/probSum;
+    // Make sure graph is updated.
+    ticked();
 }
 
-// todo: update
 // Updates the size of the evidence nodes.
-function updateEvidenceSize(scores, importanceMass) {
-    var minSize = math.min(scores)
-    var maxSize = math.max(scores)
-
-    d3.selectAll(".node.evidence")
-        .each(function(d, i) {
-            d.size = scaleValue(scores[i], minSize, maxSize, 0, 1)
-        });
+function updateEvidenceSize(subGraphScores, subGraphs) {
+    subGraphScores.forEach(function(scores,i) {
+        getNodesWithIds(subGraphs[i])
+            .each(function(d, j) {
+                d.size = scores[j]
+            });
+    });
+    // Make sure graph is updated.
     ticked();
 }

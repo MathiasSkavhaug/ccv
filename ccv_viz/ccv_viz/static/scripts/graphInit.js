@@ -1,4 +1,5 @@
 import { scaleValue } from "./util.js"
+import { originalGraph } from "./main.js";
 
 var baseLinkSize = 1.5;
 var minSize = 0;
@@ -8,8 +9,8 @@ var link;
 var node;
 var text;
 
-export function graphInit(graph, config) {
-    var currentGraph = structuredClone(graph)
+export function graphInit(config) {
+    var currentGraph = structuredClone(originalGraph)
 
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;

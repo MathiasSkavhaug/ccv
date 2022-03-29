@@ -1,4 +1,6 @@
 import { closeCardPanel } from "./cardPanel.js";
+import { ticked } from "./graphInit.js";
+import { originalGraph } from "./main.js";
 
 // Resets the graph
 export function resetGraph() {
@@ -8,6 +10,16 @@ export function resetGraph() {
 
     closeCardPanel();
 };
+
+// Resets all node sizes to it's original size.
+export function resetNodeSize() {
+    d3.selectAll(".node")
+        .each(function(d) {
+            d.size = originalGraph.nodes.find(x => x.id === d.id).size
+        })
+    // Make sure graph updates.
+    ticked();
+}
 
 // Scales value from [omin, omax] range to [nmin, nmax] range.
 export function scaleValue(value, omin, omax, nmin, nmax) {
