@@ -24,6 +24,10 @@ export function graphOptionsBarInit(graph) {
             }
             d3.select(this).classed("option-selected", !active)
         });
+
+    // Add tooltip to option buttons.
+    d3.select("#option-author").append("title").text("Toggle authors")
+    d3.select("#option-algorithm").append("title").text("Toggle SRWR")
 };
 
 // Hides or shows the options bar, depending on current state.
