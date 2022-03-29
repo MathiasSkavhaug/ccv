@@ -117,12 +117,6 @@ function getSemiRowNormalizedMatrices(A) {
     return {"APos":semiRowNormAPos, "ANeg":semiRowNormANeg};
 }
 
-// todo: implement
-// Runs one iteration of SRWR for the associated sub-graph.
-function runSRWRIteration(APos, ANeg, initialImportance, beta, gamma, epsilon) {
-    
-}
-
 // Combine each document's rationales(s)'s score(s) into document score.
 function collectDocScores() {
     d3.selectAll(".node.document")
