@@ -23,3 +23,12 @@ html, body, #container {
     background-color: var(--graph-color);
     font-family: Arial, Helvetica, sans-serif;
 }
+
+::-webkit-scrollbar {
+  width: 6px;
+  background-color: var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--graph-color);
+}
