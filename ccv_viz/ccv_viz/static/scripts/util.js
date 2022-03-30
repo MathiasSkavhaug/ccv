@@ -30,10 +30,10 @@ export function scaleValue(value, omin, omax, nmin, nmax) {
 };
 
 // Scales values from original range to [nmin, nmax] range.
-export function scaleValues(values, omin, omax, nmin, nmax) {
+export function scaleValues(values, nmin, nmax) {
     var omin = math.min(values);
     var omax = math.max(values);
-    return values.map(function(d) { scaleValue(d, omin, omax, nmin, nmax)});
+    return values.map(v => scaleValue(v, omin, omax, nmin, nmax));
 };
 
 // Flattens the given array.

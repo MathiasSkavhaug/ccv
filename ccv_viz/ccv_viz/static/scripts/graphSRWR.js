@@ -7,7 +7,7 @@ import { scaleValue, scaleValues } from "./util.js";
 // beta: parameter for the uncertainty of "the enemy of my enemy is my friend".
 // gamma: parameter for the uncertainty of "the friend of my enemy is my enemy".
 // epsilon: stopping threshold.
-export function runSRWR(c = 0.85, beta=0.5, gamma=0.9, epsilon=0.00001) {
+export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-9) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
@@ -19,8 +19,8 @@ export function runSRWR(c = 0.85, beta=0.5, gamma=0.9, epsilon=0.00001) {
     subGraphs.forEach(function(subGraph) {
         var subGraphSum = math.sum(getNodesWithIds(subGraph).data().map(n => n.size))
 
-        var scores = getNormalizedSubGraphScores(subGraph);
-        var initialImportance = scores;
+        var scores = getNormalizedSubGraphScores(subGraph)
+        var initialImportance = math.matrix(structuredClone(scores)).resize([subGraph.length, 1]);
 
         // Only do computation if sub-graph size is greater than 1.
         if (subGraph.length !== 1) {
@@ -30,24 +30,27 @@ export function runSRWR(c = 0.85, beta=0.5, gamma=0.9, epsilon=0.00001) {
             var ANeg = r.ANeg
 
             var rP = initialImportance
-            var rN = Array(rP.length).fill(0)
-            var rMark = t(math.matrix([rP,rN]))
-
+            var rN = math.matrix().resize([subGraph.length,1])
+            var rMark = math.concat(rP, rN, 0)
+            
+            var delta;
             do {
                 rP = a(dm((1 - c), a(a(m(t(APos), rP), dm(beta, m(t(ANeg), rN))), dm((1 - gamma), m(t(APos), rN)))), dm(c, initialImportance))
-                rN = dm((1 - c), a(a(m(t(ANeg), rP), dm(beta, m(t(APos), rN))), dm((1 - gamma), m(t(ANeg), rN))))
-                r = t(math.matrix([rP,rN]))
+                rN = dm((1 - c), a(a(m(t(ANeg), rP), dm(gamma, m(t(APos), rN))), dm((1 - beta), m(t(ANeg), rN))))
+                r = math.concat(rP, rN, 0)
+                delta = math.norm(s(r, rMark), 1)
                 rMark = r;
-            } while (math.norm(s(r, rMark), 1) > epsilon);
-            
-            scores = s(rP, rN)._data
-        }
-        
-        scores = getUnnormalizedSubGraphScores(scores, subGraphSum)
+            } while (delta > epsilon);
 
+            scores = t(s(rP, rN))._data[0]
+        }
+
+        var scaled = scaleValues(scores, 0, 1)
+        scores = scaled.map(v => v/math.sum(scaled))
+        scores = getUnnormalizedSubGraphScores(scores, subGraphSum)
+        
         subGraphScores.push(scores)
     });
-    
     updateEvidenceSize(subGraphScores, subGraphs);
 
     collectDocScores();
@@ -96,7 +99,7 @@ function getSignedAdjacencyMatrix(nodes) {
                     var link = getLinkBetween(evi1, evi2);
                     var value = 0;
                     if (typeof link !== "undefined") {
-                        if (link["label"] == 0) {
+                        if (link["label"] == "false") {
                             value = -link["width"];
                         } else {
                             value = link["width"];
@@ -110,11 +113,12 @@ function getSignedAdjacencyMatrix(nodes) {
 
 // Retrieves the semi-row normalized matrices A+ and A- from A.
 function getSemiRowNormalizedMatrices(A) {
-    var D = math.abs(A);
-    var semiRowNormA = math.multiply(math.inv(D), A);
-    var semiRowNormAPos = semiRowNormA.map(function(e) {return (e > 0) ? e : 0})
-    var semiRowNormANeg = semiRowNormA.map(function(e) {return (e < 0) ? e : 0})
-    return {"APos":semiRowNormAPos, "ANeg":semiRowNormANeg};
+    var D = math.sum(math.abs(A),1)
+    var invD = math.inv(math.diag(D))
+    var RNA = math.multiply(invD, A)
+    var RNAP = RNA.map(function(e) {return (e > 0) ? e : 0})
+    var RNAN = RNA.map(function(e) {return (e < 0) ? math.abs(e) : 0})
+    return {"APos": RNAP, "ANeg": RNAN};
 }
 
 // Combine each document's rationales(s)'s score(s) into document score.
