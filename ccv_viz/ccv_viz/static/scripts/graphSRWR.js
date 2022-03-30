@@ -1,13 +1,13 @@
 import { ticked } from "./graphInit.js";
 import { getAttrBetween, getLinkBetween, getNeighborsOfType, getSubGraphs, getNodesWithIds } from "./graphTraversal.js"
-import { scaleValue, scaleValues } from "./util.js";
+import { scaleValues } from "./util.js";
 
 // Runs the SRWR algorithm on the evidence nodes only graph.
 // c: restart probability of the surfer.
 // beta: parameter for the uncertainty of "the enemy of my enemy is my friend".
 // gamma: parameter for the uncertainty of "the friend of my enemy is my enemy".
 // epsilon: stopping threshold.
-export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-9) {
+export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-3) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
@@ -15,12 +15,14 @@ export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-9) {
     var evidences = d3.selectAll(".node.evidence").data().map(function(d) {return d.id});
     var subGraphs = getSubGraphs(evidences);
 
-    var subGraphScores = [];
+    var subGraphScoresTimeline = [];
     subGraphs.forEach(function(subGraph) {
+        var scoresTimeline = [];
         var subGraphSum = math.sum(getNodesWithIds(subGraph).data().map(n => n.size))
 
         var scores = getNormalizedSubGraphScores(subGraph)
         var initialImportance = math.matrix(structuredClone(scores)).resize([subGraph.length, 1]);
+        scoresTimeline.push(scores)
 
         // Only do computation if sub-graph size is greater than 1.
         if (subGraph.length !== 1) {
@@ -40,20 +42,20 @@ export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-9) {
                 r = math.concat(rP, rN, 0)
                 delta = math.norm(s(r, rMark), 1)
                 rMark = r;
+                scoresTimeline.push(t(s(rP, rN))._data[0])
             } while (delta > epsilon);
-
-            scores = t(s(rP, rN))._data[0]
         }
 
-        var scaled = scaleValues(scores, 0, 1)
-        scores = scaled.map(v => v/math.sum(scaled))
-        scores = getUnnormalizedSubGraphScores(scores, subGraphSum)
-        
-        subGraphScores.push(scores)
-    });
-    updateEvidenceSize(subGraphScores, subGraphs);
+        scoresTimeline = scoresTimeline.map(function(s) {
+            var scaled = scaleValues(s, 0, 1);
+            s = scaled.map(v => v/math.sum(scaled));
+            return getUnnormalizedSubGraphScores(s, subGraphSum);
+        });
 
-    collectDocScores();
+        subGraphScoresTimeline.push(scoresTimeline);
+    });
+
+    updateNodeSizes(subGraphScoresTimeline, subGraphs, 250);
 };
 
 // Distributes each document's score to it's rationale(s).
@@ -148,4 +150,28 @@ function updateEvidenceSize(subGraphScores, subGraphs) {
     });
     // Make sure graph is updated.
     ticked();
+}
+
+// Moves one step ahead in the SRWR score timeline every WaitTime ms.
+// For each step, updates the node sizes accordingly.
+// Once all steps are complete, updates document node sizes.
+function updateNodeSizes(subGraphScoresTimeline, subGraphs, waitTime = 0) {
+    const timer = ms => new Promise(res => setTimeout(res, ms))
+
+    async function updateSize() {
+        for (let i = 0; i < math.max(subGraphScoresTimeline.map(sg => sg.length)); i++) {
+            subGraphScoresTimeline.forEach(function(sg) {
+                if (sg[i] === undefined) {
+                    sg.push(sg[i-1])
+                }
+            });
+
+            var subGraphScores = subGraphScoresTimeline.map(sg => sg[i])
+            updateEvidenceSize(subGraphScores, subGraphs)
+            await timer(waitTime);
+        }
+        collectDocScores();
+    }
+
+    updateSize();
 }
