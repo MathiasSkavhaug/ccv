@@ -10,6 +10,8 @@ export function cardPanelInit() {
                 closeCardPanel(false);
             }
         });
+
+    new ResizeObserver(resizeCardPanel).observe(d3.select("#card-container").node())
 };
 
 // Opens the info panel.
@@ -19,11 +21,6 @@ export function openCardPanel() {
             .style("width", "60%")
 
     d3.select("#card-panel-arrow").classed("left", false).classed("right", true);
-
-    d3.selectAll(".card")
-        .transition()
-        .duration(350)
-        .style("opacity", 1)
 }
 
 // Closes the info panel.
@@ -33,11 +30,6 @@ export function closeCardPanel(clear=true) {
             .style("width", "100%")
     
     d3.select("#card-panel-arrow").classed("left", true).classed("right", false);
-
-    d3.selectAll(".card")
-        .transition()
-        .duration(100)
-        .style("opacity", 0)
 
     if (clear) {
         clearCardPanel();
@@ -70,15 +62,15 @@ export function populateCardPanel(node, dom=true) {
         var probNode = getNeighborsOfType(node, "document").data()[0];
     }
 
-    var div = d3.select("#info-panel").append("div")
+    var div = d3.select("#card-panel").append("div")
     appendCard(div, node, probNode, nodeType)
         .classed("top", true)
         .classed("card-selected", true)
 
-    d3.select("#info-panel")
+    d3.select("#card-panel")
         .append("hr")
             
-    d3.select("#info-panel")
+    d3.select("#card-panel")
         .append("div")
             .attr("id", "evidence-container")
             
@@ -89,8 +81,7 @@ export function populateCardPanel(node, dom=true) {
         })
 
     populateCards();
-
-    setTimeout(showCardPanel, 250)
+    resizeCardPanel();
 }
 
 // Appends the card associated with node "node" of type "type" to div "div".
@@ -107,6 +98,7 @@ function appendCard(div, node, probNode, type) {
             d3.event.stopPropagation();
             nodeHighlight(node);
             moveHighlight(this);
+            resizeCardPanel();
         })
         .on("dblclick", function() {
             d3.event.stopPropagation();
@@ -186,7 +178,7 @@ function populateCards() {
 
 // Clears the info panel.
 export function clearCardPanel() {
-    d3.select("#info-panel").html("")
+    d3.select("#card-panel").html("")
 }
 
 // Moves the card highlight to element
@@ -208,18 +200,19 @@ function getClassHighest(cls) {
     return highest
 }
 
-// Displays the info panel.
-function showCardPanel() {
+// Makes the cards equal size.
+function resizeCardPanel() {
+    var prevHighest = getClassHighest(".card")
+
+    // Allow cards to expand/shrink
+    d3.selectAll((".card"))
+        .style("height", null)
+
     var highest = getClassHighest(".card")
 
     d3.selectAll((".card"))
+        .style("height", prevHighest+"px")
+        .transition()
+        .duration(10)
         .style("height", highest+"px")
-        .transition()
-        .duration(250)
-        .style("opacity", "1")
-
-    d3.select("#info-container hr")
-        .transition()
-        .duration(250)
-        .style("opacity", "1")
 }
