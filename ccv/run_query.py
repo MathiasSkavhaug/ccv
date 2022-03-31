@@ -9,16 +9,19 @@ Example usage:
 
 
 import argparse
+import hashlib
+import json
+import os
+import sys
+
+from feature_visualization import get_features
 from retrieval import retrieval
 from stance_evidence import produce_files
-from feature_visualization import get_features
-import json
-import sys
 
 sys.path.append("longchecker/")
 sys.path.append("longchecker/longchecker/")
 from longchecker.predict import get_predictions
-from longchecker.util import write_jsonl, load_jsonl
+from longchecker.util import load_jsonl, write_jsonl
 
 
 def get_args() -> argparse.Namespace:
@@ -30,32 +33,44 @@ def get_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--claim", type=str, help="claim to use for searching.", required=True
+        "--claim",
+        type=str,
+        help="claim to use for searching, can also be a file of claims.",
+        required=True,
     )
-    parser.add_argument(
-        "--exe_id", type=str, help="unique execution id.", required=True
-    )
+    parser.add_argument("--exe_id", type=str, help="unique execution id.")
     parser.add_argument(
         "--device",
         type=str,
         help="device to run the models on.",
         default="cuda:0",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.exe_id:
+        args.exe_id = hashlib.md5(args.claim.encode()).hexdigest()
+
+    return args
 
 
 def run_retrieval(claim: str, exe_id: str, device: str) -> None:
     """Runs retrieval on the provided claim.
 
     Args:
-        claim (str): The claim.
+        claim (str): The claim, or path to claim file.
         exe_id (str): The execution id.
         device (str): The device to run the model on.
     """
 
     input = f"./data/{exe_id}_claim.jsonl"
     with open(input, "w") as f:
-        f.write(json.dumps({"claim": claim}))
+        # Is file of claims.
+        if os.path.exists(claim):
+            with open(claim, "r") as c:
+                for line in c:
+                    f.write(json.dumps({"claim": line.strip()}) + "\n")
+        else:
+            f.write(json.dumps({"claim": claim}))
 
     args = argparse.Namespace()
     args.index = "anserini/indexes/lucene-index-cord19-abstract-2022-02-07"
@@ -92,7 +107,7 @@ def format_predictions(args, predictions_all):
                 "label": prediction["predicted_label"],
                 "label_probs": prediction["label_probs"],
                 "sentences": prediction["predicted_rationale"],
-                "sentences_probs": prediction["rationale_probs"]
+                "sentences_probs": prediction["rationale_probs"],
             }
         }
         formatted[prediction["claim_id"]].update(formatted_entry)

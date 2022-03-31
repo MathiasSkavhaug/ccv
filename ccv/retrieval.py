@@ -177,15 +177,9 @@ def get_sentences(
     abstract = metadata["abstract"]
     sentences = sent_tokenize(abstract)
 
-    print(sentences)
-
     # Sometimes the abstract has missing fullstops, tries to salvage that.
     if len(sentences) == 1:
         sentences = split_fullstopless(abstract)
-
-        print()
-        print(sentences)
-    print("**************************************")
 
     return sentences
 
