@@ -29,6 +29,9 @@ export function init(config=[]) {
 }
 
 d3.select(window).on('load', function () {
-    initWithLoad("/static/data/graph.json")
-    initialState();
+    d3.text("/static/data/claims.txt", function(claims) {
+        var claim = d3.csvParseRows(claims)[0];
+        initWithLoad("/search/"+claim)
+        initialState();
+    });
 })
