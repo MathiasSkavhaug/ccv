@@ -23,6 +23,17 @@ export function graphInit(config) {
             .attr("height", height)
             .attr("id", "viz")
 
+    // Did not find relevant documents for the claim.
+    if (Object.keys(currentGraph).length === 0) {
+        viz
+            .append("text")
+            .text("No relevant documents found for the claim.")
+            .attr("id", "documents-not-found")
+            .attr("x", width / 2)
+            .attr("y", height / 2)
+        return
+    }
+
     if (!config.includes("author")) {
         currentGraph.links = currentGraph.links.filter(function(d) {return ["true","false","evidence","reference"].includes(d.label)})
         currentGraph.nodes = currentGraph.nodes.filter(function(d) {return ["claim", "document", "evidence"].includes(d.type)})

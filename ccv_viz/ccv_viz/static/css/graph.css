@@ -111,3 +111,8 @@ text.text {
 .color-bar-text-left {
     text-anchor: end;
 }
+
+#documents-not-found {
+    fill: var(--border-color);
+    text-anchor: middle;
+}

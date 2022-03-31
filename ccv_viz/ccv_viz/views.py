@@ -1,6 +1,9 @@
-from sympy import true
+import json
+from pathlib import Path
+
+from flask import render_template
+
 from ccv_viz import app
-from flask import render_template, send_from_directory
 
 
 @app.route("/")
@@ -10,5 +13,9 @@ def index():
 
 @app.route("/search/<query>")
 def search(query):
-    # TODO: search and return result.
-    return send_from_directory("static/data", "graph.json")
+    with open(Path(app.static_folder + "/data/graphs.jsonl"), "r") as f:
+        for line in f:
+            graph = json.loads(line)
+            if graph["nodes"][0]["text"] == query:
+                return graph
+    return {}
