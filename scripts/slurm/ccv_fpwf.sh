@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --gres=gpu:0
+#SBATCH --gres=gpu:1
 #SBATCH --partition=gpuA100 
-#SBATCH --time=01:00:00
+#SBATCH --time=03:00:00
 #SBATCH --job-name=ccv_fpwf
 #SBATCH --output=ccv_fpwf.out
  
