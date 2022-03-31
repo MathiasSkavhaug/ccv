@@ -6,7 +6,18 @@ export function graphSearchBarInit() {
         .on("click", toggleSearchBar)
 
     d3.select("#search-bar")
-        .on("keypress", sendSearchRequest)
+        .on("change", sendSearchRequest)
+
+    //Add options to select
+    d3.text("/static/data/claims.txt", function(claims) {
+        claims = d3.csvParseRows(claims);
+        d3.select("#search-bar")
+                .selectAll('option')
+	            .data(claims)
+                .enter()
+            .append('option')
+                .text(function (d) { return d; });
+    });
 }
 
 // Hides or shows the search bar, depending on current state.
@@ -27,17 +38,12 @@ function toggleSearchBar() {
 
 // Run search
 function sendSearchRequest() {
-    var searchBar = d3.select("#search-bar").node()
-    // Enter key is pressed
-    if (d3.event.keyCode === 13) {
-        var query = searchBar.value
+    var query = d3.select("#search-bar").node().value
 
-        // Remove graph and remake with new data.
-        resetGraph()
-        initWithLoad("/search/"+query)
+    // Remove graph and remake with new data.
+    resetGraph()
+    initWithLoad("/search/"+query)
 
-        searchBar.value = ""
-        toggleSearchBar()
-        d3.select("#option-author").classed("option-selected", false)
-    }
+    toggleSearchBar()
+    d3.select("#option-author").classed("option-selected", false)
 }

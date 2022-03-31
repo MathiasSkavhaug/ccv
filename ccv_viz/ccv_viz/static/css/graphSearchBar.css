@@ -22,3 +22,13 @@
     color: var(--border-color);
     background: transparent;
 }
+
+#search-bar:focus>option:checked {
+    background: var(--graph-color);
+    color: var(--border-color);
+}
+
+#search-bar:focus>option {
+    background: var(--panel-color);
+    color: var(--border-color);
+}
