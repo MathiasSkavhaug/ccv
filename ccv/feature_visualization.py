@@ -146,9 +146,11 @@ def process_authors(corpusid: str) -> Dict[str, Any]:
 
     result = {}
     result["authors"] = dict(zip(d["authorId"], d["name"]))
-    result["paperCounts"] = d["paperCount"]
-    result["citationCounts"] = d["citationCount"]
-    result["hIndices"] = d["hIndex"]
+    result["paperCounts"] = [v if v is not None else 0 for v in d["paperCount"]]
+    result["citationCounts"] = [
+        v if v is not None else 0 for v in d["citationCount"]
+    ]
+    result["hIndices"] = [v if v is not None else 0 for v in d["hIndex"]]
 
     return result
 

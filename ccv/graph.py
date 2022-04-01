@@ -4,7 +4,7 @@ features extracted in feature_visualization.py"""
 
 from ctypes import Union
 from datetime import datetime
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Tuple, Union
 from statistics import mean
 
 
@@ -71,8 +71,8 @@ def scale_values(
         List[float]: Scaled values.
     """
 
-    omin = min([v for v in values if v])
-    omax = max([v for v in values if v])
+    omin = min([v for v in values if v is not None])
+    omax = max([v for v in values if v is not None])
     return [
         0 if not v else scale_value(v, omin, omax, nmin, nmax) for v in values
     ]
@@ -112,7 +112,7 @@ def scale_dict_with_values(
 
 def compute_document_scores(
     docs: Dict[str, Dict[str, Any]]
-) -> Dict[str, float]:
+) -> Tuple[Dict[str, float], Dict[str, List[float]]]:
     """Computes the importance score for the given documents.
 
     Args:
@@ -121,17 +121,20 @@ def compute_document_scores(
     Returns:
         Dict[str, float]: Dict with doc_id as key and importance score as
             value.
+         Dict[str, List[float]]: The raw values for each document.
     """
 
     # Retrieve attribute values
-    values = {id: get_doc_values(doc) for id, doc in docs.items()}
+    values_raw = {id: get_doc_values(doc) for id, doc in docs.items()}
 
-    values = scale_dict_with_values(values)
+    values = scale_dict_with_values(values_raw)
 
-    return values
+    return values, values_raw
 
 
-def compute_author_scores(docs: Dict[str, Dict[str, Any]]) -> Dict[str, float]:
+def compute_author_scores(
+    docs: Dict[str, Dict[str, Any]]
+) -> Tuple[Dict[str, float], Dict[str, List[float]]]:
     """Computes the importance score for the given documents's authors.
 
     Args:
@@ -140,20 +143,21 @@ def compute_author_scores(docs: Dict[str, Dict[str, Any]]) -> Dict[str, float]:
     Returns:
         Dict[str, float]: Dict with author_id as key and importance score as
             value.
+        Dict[str, List[float]]: The raw values for each author.
     """
-    values = {}
+    values_raw = {}
     for _, doc in docs.items():
         ainfo = doc["ainfo"]
         for i, aid in enumerate(ainfo["authors"].keys()):
-            values[aid] = [
+            values_raw[aid] = [
                 ainfo["paperCounts"][i],
                 ainfo["citationCounts"][i],
                 ainfo["hIndices"][i],
             ]
 
-    values = scale_dict_with_values(values)
+    values = scale_dict_with_values(values_raw)
 
-    return values
+    return values, values_raw
 
 
 def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
@@ -170,8 +174,8 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     lmap = {"SUPPORT": "true", "CONTRADICT": "false"}
     nodes, links = [], []
 
-    doc_scores = compute_document_scores(dinfo["docs"])
-    author_scores = compute_author_scores(dinfo["docs"])
+    doc_scores, doc_scores_raw = compute_document_scores(dinfo["docs"])
+    author_scores, author_scores_raw = compute_author_scores(dinfo["docs"])
 
     # Add claim node
     nodes.append(
@@ -190,6 +194,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "type": "document",
                 "text": doc["title"],
                 "size": doc_scores[id],
+                "size_raw": doc_scores_raw[id],
                 "date": doc["publish_time"],
                 "authors": ", ".join(doc["ainfo"]["authors"].values()),
                 "journal": doc["journal"],
@@ -264,6 +269,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "type": "author",
                 "text": amap[aid],
                 "size": author_scores[aid],
+                "size_raw": author_scores_raw[aid],
             }
         )
         for doc in docs:
