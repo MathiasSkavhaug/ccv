@@ -57,6 +57,7 @@ def produce_files(args: argparse.Namespace) -> None:
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
+    claim_count = 0
     with open(args.ocorpus, "w") as ecorpus, open(args.oclaims, "w") as eclaims:
         for claim_num, row in tqdm(
             predictions.iterrows(), total=predictions.shape[0]
@@ -65,6 +66,7 @@ def produce_files(args: argparse.Namespace) -> None:
             if not evidence_dict:  # Did not find any evidence for claim.
                 continue
 
+            # Aggeragate document information
             info = {}
             info["claim"] = claims.loc[claim_num][0]
             info["docs"] = []
@@ -77,19 +79,17 @@ def produce_files(args: argparse.Namespace) -> None:
                 d["evidence"] = [
                     doc["abstract"][s] for s in evidence["sentences"]
                 ]
-                try:
-                    d["publish_time"] = doc["publish_time"].strftime("%Y-%m-%d")
-                except ValueError:
-                    d["publish_time"] = "0000-00-00"
-
                 info["docs"].append(d)
 
-            docs = sorted(info["docs"], key=lambda x: x["publish_time"])
+            docs = info["docs"]
 
-            claim_count = 0
+            # Produce all possible pairs of evidences, excluding pairs of
+            # evidences from same document.
             claim_map = {}
             for doc_num, d1 in enumerate(docs):
+                # For every evidence in document
                 for evidence_num, e1 in enumerate(d1["evidence"]):
+                    # Write to "evidence corpus"
                     ecorpus.write(
                         json.dumps(
                             {
@@ -98,16 +98,20 @@ def produce_files(args: argparse.Namespace) -> None:
                                 ),
                                 "title": None,
                                 "abstract": [e1],
-                            })
+                            }
+                        )
                         + "\n"
                     )
 
+                    # For every document
                     for other_doc_num, d2 in enumerate(docs):
                         if (
                             other_doc_num == doc_num
                         ):  # No need to check a document's evidences against each other.
                             continue
+                        # For every evidence in other document.
                         for other_evidence_num in range(len(d2["evidence"])):
+                            # Write evidence pair
                             eclaims.write(
                                 json.dumps(
                                     {
@@ -118,7 +122,8 @@ def produce_files(args: argparse.Namespace) -> None:
                                                 f"{claim_num+1}0{other_doc_num+1}0{other_evidence_num+1}"
                                             )
                                         ],
-                                    })
+                                    }
+                                )
                                 + "\n"
                             )
                             claim_map[claim_count] = {
@@ -129,8 +134,8 @@ def produce_files(args: argparse.Namespace) -> None:
                                 "sdoc_e_num": other_evidence_num,
                             }
                             claim_count += 1
-            with open(args.omap, "w", encoding="utf-8") as f:
-                f.write(json.dumps(claim_map))
+    with open(args.omap, "w", encoding="utf-8") as f:
+        f.write(json.dumps(claim_map))
 
 
 def main():
