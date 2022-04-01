@@ -57,6 +57,7 @@ def produce_files(args: argparse.Namespace) -> None:
     corpus = pd.read_json(args.corpus, lines=True).set_index("doc_id")
     predictions = pd.read_json(args.predictions, lines=True).set_index("id")
 
+    claim_map = {}
     claim_count = 0
     with open(args.ocorpus, "w") as ecorpus, open(args.oclaims, "w") as eclaims:
         for claim_num, row in tqdm(
@@ -85,7 +86,6 @@ def produce_files(args: argparse.Namespace) -> None:
 
             # Produce all possible pairs of evidences, excluding pairs of
             # evidences from same document.
-            claim_map = {}
             for doc_num, d1 in enumerate(docs):
                 # For every evidence in document
                 for evidence_num, e1 in enumerate(d1["evidence"]):
@@ -134,8 +134,8 @@ def produce_files(args: argparse.Namespace) -> None:
                                 "sdoc_e_num": other_evidence_num,
                             }
                             claim_count += 1
-    with open(args.omap, "w", encoding="utf-8") as f:
-        f.write(json.dumps(claim_map))
+    with open(args.omap, "w") as emap:
+        emap.write(json.dumps(claim_map))
 
 
 def main():
