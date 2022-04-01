@@ -62,7 +62,7 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
         device (str): The device to run the model on.
     """
 
-    input = f"./data/{exe_id}_claim.jsonl"
+    input = f"./data/{exe_id}/claim.jsonl"
     with open(input, "w") as f:
         # Is file of claims.
         if os.path.exists(claim):
@@ -78,8 +78,8 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
     args.ninit = 100
     args.input = input
     args.claim_col = "claim"
-    args.output_claims = f"data/{exe_id}_ds_claims.jsonl"
-    args.output_corpus = f"data/{exe_id}_ds_corpus.jsonl"
+    args.output_claims = f"data/{exe_id}/ds_claims.jsonl"
+    args.output_corpus = f"data/{exe_id}/ds_corpus.jsonl"
     args.rerank = True
     args.device = device
     args.batch_size = 100
@@ -132,9 +132,9 @@ def stance_document(exe_id: str, device: str) -> None:
 
     args = argparse.Namespace()
     args.checkpoint_path = "longchecker/checkpoints/covidfact.ckpt"
-    args.input_file = f"data/{exe_id}_ds_claims.jsonl"
-    args.corpus_file = f"data/{exe_id}_ds_corpus.jsonl"
-    args.output_file = f"data/{exe_id}_ds_result.jsonl"
+    args.input_file = f"data/{exe_id}/ds_claims.jsonl"
+    args.corpus_file = f"data/{exe_id}/ds_corpus.jsonl"
+    args.output_file = f"data/{exe_id}/ds_result.jsonl"
     args.batch_size = 1
     args.device = device
     args.num_workers = 4
@@ -156,16 +156,16 @@ def stance_evidence(exe_id: str, device: str) -> None:
         device (str): The device to run the model on.
     """
 
-    output_claims = f"data/{exe_id}_es_claims.jsonl"
-    output_corpus = f"data/{exe_id}_es_corpus.jsonl"
+    output_claims = f"data/{exe_id}/es_claims.jsonl"
+    output_corpus = f"data/{exe_id}/es_corpus.jsonl"
 
     args = argparse.Namespace()
     args.oclaims = output_claims
     args.ocorpus = output_corpus
-    args.omap = f"data/{exe_id}_es_map.json"
-    args.claims = f"data/{exe_id}_ds_claims.jsonl"
-    args.corpus = f"data/{exe_id}_ds_corpus.jsonl"
-    args.predictions = f"data/{exe_id}_ds_result.jsonl"
+    args.omap = f"data/{exe_id}/es_map.json"
+    args.claims = f"data/{exe_id}/ds_claims.jsonl"
+    args.corpus = f"data/{exe_id}/ds_corpus.jsonl"
+    args.predictions = f"data/{exe_id}/ds_result.jsonl"
 
     produce_files(args)
 
@@ -173,7 +173,7 @@ def stance_evidence(exe_id: str, device: str) -> None:
     args.checkpoint_path = "longchecker/checkpoints/covidfact.ckpt"
     args.input_file = output_claims
     args.corpus_file = output_corpus
-    args.output_file = f"data/{exe_id}_es_result.jsonl"
+    args.output_file = f"data/{exe_id}/es_result.jsonl"
     args.batch_size = 1
     args.device = device
     args.num_workers = 4
@@ -195,12 +195,12 @@ def feature_visualization(exe_id: str) -> None:
     """
 
     args = argparse.Namespace()
-    args.output = f"data/{exe_id}_final_output.jsonl"
-    args.claims = f"data/{exe_id}_ds_claims.jsonl"
-    args.corpus = f"data/{exe_id}_ds_corpus.jsonl"
-    args.predictions = f"data/{exe_id}_ds_result.jsonl"
-    args.erelations = f"data/{exe_id}_es_result.jsonl"
-    args.emap = f"data/{exe_id}_es_map.json"
+    args.output = f"data/{exe_id}/final_output.jsonl"
+    args.claims = f"data/{exe_id}/ds_claims.jsonl"
+    args.corpus = f"data/{exe_id}/ds_corpus.jsonl"
+    args.predictions = f"data/{exe_id}/ds_result.jsonl"
+    args.erelations = f"data/{exe_id}/es_result.jsonl"
+    args.emap = f"data/{exe_id}/es_map.json"
 
     get_features(args)
 
@@ -214,6 +214,7 @@ def run_query(claim: str, exe_id: str, device: str) -> None:
         device (str): The device to run the model on.
     """
 
+    os.makedirs(f"data/{exe_id}", exist_ok=True)
     run_retrieval(claim, exe_id, device)
     stance_document(exe_id, device)
     stance_evidence(exe_id, device)
