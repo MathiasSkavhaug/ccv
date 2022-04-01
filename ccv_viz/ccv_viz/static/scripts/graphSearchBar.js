@@ -42,7 +42,7 @@ function sendSearchRequest() {
 
     // Remove graph and remake with new data.
     resetGraph()
-    initWithLoad("/search/"+query)
+    initWithLoad("/search/"+encodeURIComponent(query))
 
     toggleSearchBar()
     d3.select("#option-author").classed("option-selected", false)

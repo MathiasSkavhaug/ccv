@@ -164,6 +164,5 @@ function changeFromDateColors() {
             .style("fill", null)
     });
 
-
     d3.select("#color-bar").remove()
 }
