@@ -81,6 +81,7 @@ function distributeDocScores() {
 // Retrieves the normalized node scores for the sub-graph.
 function getNormalizedSubGraphScores(subGraph) {
     var scores = getNodesWithIds(subGraph).data().map(n => n.size)
+    if (math.sum(scores == 0)) {scores = scores.map(s => 1)}
     return scores.map(s => s/math.sum(scores))
 }
 

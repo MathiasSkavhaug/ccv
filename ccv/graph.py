@@ -194,7 +194,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "type": "document",
                 "text": doc["title"],
                 "size": doc_scores[id],
-                "size_raw": doc_scores_raw[id],
+                "sizeRaw": doc_scores_raw[id],
                 "date": doc["publish_time"],
                 "authors": ", ".join(doc["ainfo"]["authors"].values()),
                 "journal": doc["journal"],
@@ -269,7 +269,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "type": "author",
                 "text": amap[aid],
                 "size": author_scores[aid],
-                "size_raw": author_scores_raw[aid],
+                "sizeRaw": author_scores_raw[aid],
             }
         )
         for doc in docs:

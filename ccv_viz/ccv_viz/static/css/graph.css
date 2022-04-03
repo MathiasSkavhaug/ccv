@@ -1,6 +1,7 @@
 @import "./graphTooltip.css";
 @import "./graphSearchBar.css";
 @import "./graphOptionsBar.css";
+@import "./graphParameterPanel.css";
 
 #graph-container {
     width: 100%;

@@ -1,7 +1,8 @@
 import { init } from "./main.js"
-import { resetGraph, resetNodeSize } from "./util.js"
+import { resetGraph } from "./util.js"
 import { runSRWR } from "./graphSRWR.js"
 import { getNeighborsOfType, getNodesWithIds } from "./graphTraversal.js";
+import { updateNodeSize, openParameterPanel, closeParameterPanel } from "./graphParameterPanel.js"
 
 export function graphOptionsBarInit() {
     d3.select("#options-arrow")
@@ -18,8 +19,10 @@ export function graphOptionsBarInit() {
         .on("click", function() {
             var active = d3.select(this).classed("option-selected")
             if (active) {
-                resetNodeSize();
+                // Reset node sizes back to size before algorithm
+                updateNodeSize();
             } else {
+                // Run algorithm
                 runSRWR();
             }
             d3.select(this).classed("option-selected", !active)
@@ -36,10 +39,22 @@ export function graphOptionsBarInit() {
             d3.select(this).classed("option-selected", !active)
         });
 
+    d3.select("#option-slider")
+        .on("click", function() {
+            var active = d3.select(this).classed("option-selected")
+            if (active) {
+                closeParameterPanel();
+            } else {
+                openParameterPanel();
+            }
+            d3.select(this).classed("option-selected", !active)
+        });
+
     // Add tooltip to option buttons.
     d3.select("#option-author").append("title").text("Toggle authors");
     d3.select("#option-algorithm").append("title").text("Toggle SRWR");
     d3.select("#option-date").append("title").text("Toggle publish date colors");
+    d3.select("#option-slider").append("title").text("Toggle parameter panel");
 
     // Date option is already selected.
     if (d3.select("#option-date").classed("option-selected")) {

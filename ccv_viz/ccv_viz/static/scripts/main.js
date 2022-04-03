@@ -6,6 +6,7 @@ import { graphSearchBarInit } from "./graphSearchBar.js"
 import { graphOptionsBarInit } from "./graphOptionsBar.js";
 import { cardPanelInit } from "./cardPanel.js"
 import { initialState } from "./initialState.js"
+import { graphParameterPanelInit } from "./graphParameterPanel.js"
 
 export var originalGraph;
 
@@ -26,6 +27,7 @@ export function init(config=[]) {
     graphTooltipInit();
     graphSearchBarInit();
     graphOptionsBarInit();
+    graphParameterPanelInit();
 }
 
 d3.select(window).on('load', function () {

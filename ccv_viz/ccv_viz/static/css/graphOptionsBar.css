@@ -3,7 +3,6 @@
     margin: auto 0 auto 0;
     top: 0;
     bottom: 0;
-    height: 25%;
     display: flex;
     align-items: center;
     flex-direction: row-reverse;
@@ -11,7 +10,6 @@
 
 #graph-options-bar {
     width: 0;
-    height: 100%;
     background-color: var(--panel-color);
     border-radius: 0px 10px 10px 0;
 }
@@ -28,6 +26,10 @@
     display: block;
     fill: var(--graph-color);
     margin: 10px auto 0 auto;
+}
+
+.option-button:last-of-type {
+    margin: 10px auto 10px auto;
 }
 
 .option-selected {

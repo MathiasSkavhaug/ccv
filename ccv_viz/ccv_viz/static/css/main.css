@@ -22,7 +22,6 @@ html, body, #container {
     display: flex;
     background-color: var(--graph-color);
     font-family: Arial, Helvetica, sans-serif;
-    overflow: hidden;
 }
 
 ::-webkit-scrollbar {

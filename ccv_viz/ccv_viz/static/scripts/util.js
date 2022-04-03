@@ -48,3 +48,13 @@ function flatten(arr) {
 export function searchNested(value, nested) {
     return flatten(nested).includes(value);
 }
+
+// Scales matrix by attribute.
+export function scaleMatrix(matrix) {
+    var scaled = [];
+    for (let i = 0; i < matrix._size[1]; i++) {
+        var values = math.column(matrix, i)._data.map(v => v[0]);
+        scaled.push(scaleValues(values, 0, 1))
+    }
+    return math.transpose(math.matrix(scaled))
+}
