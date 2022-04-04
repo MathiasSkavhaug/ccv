@@ -221,7 +221,8 @@ def get_ref_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def get_aut_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
-    """Looks for common authors between documents identified as evidence to a claim.
+    """Looks for common authors between documents identified as evidence to a
+    claim.
 
     Args:
         dinfo (Dict[str, Any]): Dictionary containing various claim related
@@ -266,13 +267,12 @@ def get_evi_links(
         if not evidence:
             continue
         k = list(evidence.keys())[0]
-        label = evidence[k]["label"]
-        label_prob = evidence[k]["label_probs"][
-            0 if label == "CONTRADICT" else 2
-        ]
         d = emap[str(er["id"])]
-        d["label"] = label
-        d["label_prob"] = label_prob
+        d["label"] = evidence[k]["label"]
+        d["label_prob"] = evidence[k]["label_probs"][
+            0 if d["label"] == "CONTRADICT" else 2
+        ]
+        d["sent_prob"] = evidence[k]["sentences_probs"][0]
         id = d.pop("claim_id")
         if id not in evi_links:
             evi_links[id] = []

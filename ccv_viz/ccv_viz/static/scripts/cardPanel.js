@@ -1,4 +1,4 @@
-import { getNeighborsOfType, getAttrBetween, getNodesWithIds } from "./graphTraversal.js"
+import { getNeighborsOfType, getAttrBetween, getNodesWithIds, getLinkBetween } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
 
 export function cardPanelInit() {
@@ -160,18 +160,20 @@ function populateCards() {
                     metadata.append("div")
                 }
 
-                if (node.classed("document")) {
-                    var linkNodeData = getNeighborsOfType(nodeData, "claim").data()[0]
-                    var prob = getAttrBetween(nodeData, linkNodeData, "width")
-                } else {
-                    var linkNodeData = getNeighborsOfType(nodeData, "document").data()[0]
-                    var prob = getAttrBetween(nodeData, linkNodeData, "width")
+                var topNode = getNodesWithIds([d3.select(".card.top").attr("node-id")]).data()[0]
+                if (nodeData.id == topNode.id) {
+                    if (node.classed("document")) {
+                        var topNode = getNeighborsOfType(nodeData, "claim").data()[0]
+                    } else {
+                        var topNode = getNeighborsOfType(nodeData, "document").data()[0]
+                    }
                 }
-
+                var prob = getAttrBetween(nodeData, topNode, "width")
+                
                 metadata
                     .append("div")
                         .classed("card-score", true)
-                        .html(prob.toFixed(3))
+                        .html(prob.toFixed(3) + (typeof sentProb !== "undefined" ? "|"+sentProb.toFixed(3) : ""))
             }
         })
 };

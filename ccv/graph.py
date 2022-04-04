@@ -248,6 +248,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "target": f"{elink['sdoc_id']}_{elink['sdoc_e_num']}",
                 "label": lmap[elink["label"]],
                 "width": elink["label_prob"],
+                "sentProb": elink["sent_prob"],
             }
         )
 
@@ -288,17 +289,15 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     for i, link in enumerate(links):
         target = link["source"]
         source = link["target"]
-        label = link["label"]
-        width = link["width"]
 
-        d[(target, source)] = (str(label), width)
+        d[(target, source)] = link
 
         # Only continue if evidence-evidence link
         if "_" not in target:
             continue
 
-        ele1 = d.get((target, source), None)
-        ele2 = d.get((source, target), None)
+        ele1 = d.get((target, source), {}).get("label", None)
+        ele2 = d.get((source, target), {}).get("label", None)
 
         if ele1 and ele2:
             # if labels do not agree, remove both
@@ -309,10 +308,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             else:
                 d.pop((target, source))
 
-    links = [
-        {"source": s, "target": t, "label": l, "width": w}
-        for (s, t), (l, w) in d.items()
-    ]
+    links = list(d.values())
 
     graph = {"nodes": nodes, "links": links}
 

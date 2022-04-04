@@ -8,9 +8,11 @@ var nodeSizeRange = [5,15];
 var link;
 var node;
 var text;
+var currentGraph;
+var simulation;
 
 export function graphInit(config) {
-    var currentGraph = structuredClone(originalGraph)
+    currentGraph = structuredClone(originalGraph)
 
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
@@ -39,12 +41,8 @@ export function graphInit(config) {
         currentGraph.nodes = currentGraph.nodes.filter(function(d) {return ["claim", "document", "evidence"].includes(d.type)})
     }
 
-    // ### Section from https://bl.ocks.org/mbostock/4062045 (with some modifications) ### //
-
-    var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function (d) {
-            return d.id;
-        }))
+    simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function (d) {return d.id;}))
         .force("charge", d3.forceManyBody().strength(-50))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -94,26 +92,6 @@ export function graphInit(config) {
     simulation.force("link")
         .links(currentGraph.links);
 
-
-    function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-    }
-
-    function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
-    }
-
-    function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-    }
-
-    // ### ### //
-
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
     maxSize = d3.max(node.data(), function (d) { return d.size; });
@@ -137,4 +115,21 @@ export function ticked() {
 
     text.attr("x", function(d) { return d.x })
         .attr("y", function(d) { return d.y - 2 - scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
+}
+
+function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+}
+
+function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
 }
