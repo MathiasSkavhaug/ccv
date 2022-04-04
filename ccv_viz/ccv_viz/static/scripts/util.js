@@ -11,9 +11,9 @@ export function resetGraph() {
     closeCardPanel();
 };
 
-// Resets all node sizes to it's original size.
-export function resetNodeSize() {
-    d3.selectAll(".node")
+// Resets all nodes matching "selection" to their original size.
+export function resetNodeSize(selection=".node") {
+    d3.selectAll(selection)
         .each(function(d) {
             d.size = originalGraph.nodes.find(x => x.id === d.id).size
         })

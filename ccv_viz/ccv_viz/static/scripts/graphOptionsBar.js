@@ -1,6 +1,6 @@
 import { init } from "./main.js"
 import { resetGraph } from "./util.js"
-import { runSRWR } from "./graphSRWR.js"
+import { startSRWR } from "./graphSRWR.js"
 import { getNeighborsOfType, getNodesWithIds } from "./graphTraversal.js";
 import { updateNodeSize, openParameterPanel, closeParameterPanel } from "./graphParameterPanel.js"
 
@@ -23,7 +23,7 @@ export function graphOptionsBarInit() {
                 updateNodeSize();
             } else {
                 // Run algorithm
-                runSRWR();
+                startSRWR();
             }
             d3.select(this).classed("option-selected", !active)
         });

@@ -12,13 +12,17 @@
     border-radius: 0px 10px 0px 0;
 }
 
-#parameter-panel-title {
+.parameter-panel-title {
     text-align: center;
     width: 100%;
     text-decoration: underline;
     font-size: large;
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.panel-sliders {
+    display: none;
 }
 
 .slider {
@@ -38,4 +42,15 @@
 .slider-slider {
     margin-left: 1rem;
     margin-right: 1rem;
+}
+
+#parameter-panel-arrow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1rem;
+    height: 1rem;
+    fill: var(--border-color);
+    margin: 5px;
+    cursor: pointer;
 }

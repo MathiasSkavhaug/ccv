@@ -1,13 +1,26 @@
 import { ticked } from "./graphInit.js";
+import { getWeights } from "./graphParameterPanel.js";
 import { getAttrBetween, getLinkBetween, getNeighborsOfType, getSubGraphs, getNodesWithIds } from "./graphTraversal.js"
 import { scaleValues } from "./util.js";
+
+// Retrieves the parameters and runs SRWR.
+export function startSRWR() {
+    var params = getParameters();
+    runSRWR(params.c, params.beta, params.gamma, params.epsilon)
+}
+
+// Retrives the SRWR parameters from the sliders.
+function getParameters() {
+    var weights = getWeights("#SRWR-sliders");
+    return {"c": weights[0], "beta": weights[1], "gamma": weights[2], "epsilon": weights[3]}
+};
 
 // Runs the SRWR algorithm on the evidence nodes only graph.
 // c: restart probability of the surfer.
 // beta: parameter for the uncertainty of "the enemy of my enemy is my friend".
 // gamma: parameter for the uncertainty of "the friend of my enemy is my enemy".
-// epsilon: stopping threshold.
-export function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-3) {
+// epsilon: delta threshold.
+function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-2) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
