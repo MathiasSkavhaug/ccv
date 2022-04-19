@@ -1,5 +1,7 @@
-import { getNeighborsOfType, getAttrBetween, getNodesWithIds, getLinkBetween } from "./graphTraversal.js"
+import { getNeighborsOfType, getAttrBetween, getNodesWithIds, getNodeLinks } from "./graphTraversal.js"
 import { nodeHighlight } from "./graphInteraction.js"
+
+var weightedVote, weightedVoteAlgo;
 
 export function cardPanelInit() {
     d3.select("#card-panel-arrow")
@@ -11,7 +13,9 @@ export function cardPanelInit() {
             }
         });
 
-    new ResizeObserver(resizeCardPanel).observe(d3.select("#card-container").node())
+    new ResizeObserver(resizeCardPanel).observe(d3.select("#card-container").node());
+
+    updateWeightedVote();
 };
 
 // Opens the info panel.
@@ -122,7 +126,13 @@ function populateCards() {
                 .append("div")
                     .html(nodeData.text)
 
-            if (node.classed("claim")) {return}
+            if (node.classed("claim")) {
+                var div = card.append("div").classed("predictions", true)
+                div.append("div").html("<span>Majority Vote:</span>"+getMajorityVote())
+                div.append("div").html("<span>Weighted Average:</span>"+weightedVote)
+                div.append("div").html("<span>SRWR:</span>"+weightedVoteAlgo)
+                return
+            }
                         
             if (node.classed("document") || node.classed("evidence")) {
                 var metadata = card.append("div").classed("metadata", true)
@@ -218,3 +228,45 @@ function resizeCardPanel() {
         .duration(10)
         .style("height", highest+"px")
 }
+
+// Returns prediction of claim veracity based on majority vote.
+function getMajorityVote() {
+    var votes = [];
+    getNodeLinks(d3.select(".node.claim").data()[0])
+        .each(function(d) {
+            votes.push(d.label == "true" ? 1 : -1)
+        });
+    var mean = math.mean(votes);
+    var label = (mean > 0 ? "True" : "False");
+    return "<span class='"+label.toLowerCase()+"'>" + label + " " + "("+mean.toFixed(3)+")" + "</span>";
+};
+
+// Returns prediction of claim veracity based on weighted vote.
+function getWeightedVote() {
+    var votes = [];
+    getNodeLinks(d3.select(".node.claim").data()[0])
+        .each(function(l) {
+            var d = (l.target.id == "Claim" ? l.source : l.target)
+            votes.push(l.label == "true" ? d.size : -d.size)
+        });
+    var mean = math.mean(votes);
+    var label = (mean > 0 ? "True" : "False");
+    return "<span class='"+label.toLowerCase()+"'>" + label + " " + "("+mean.toFixed(3)+")" + "</span>";
+};
+
+// Updates the correct prediction.
+export function updateWeightedVote() {
+    if (d3.select("#option-algorithm").classed("option-selected")) {
+        weightedVoteAlgo = getWeightedVote();
+        if (!d3.select(".card.claim.top").empty()) {
+            d3.select(".predictions>div:nth-child(3)").html("<span>SRWR:</span>"+weightedVoteAlgo);
+        };
+    } else {
+        weightedVote = getWeightedVote();
+        weightedVoteAlgo = "Not run"
+        if (!d3.select(".card.claim.top").empty()) {
+            d3.select(".predictions>div:nth-child(2)").html("<span>Weighted Average:</span>"+weightedVote);
+            d3.select(".predictions>div:nth-child(3)").html("<span>SRWR:</span>"+weightedVoteAlgo);
+        };
+    };
+};

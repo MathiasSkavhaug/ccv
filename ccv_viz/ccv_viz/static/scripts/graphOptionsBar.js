@@ -18,6 +18,7 @@ export function graphOptionsBarInit() {
     d3.select("#option-algorithm")
         .on("click", function() {
             var active = d3.select(this).classed("option-selected")
+            d3.select(this).classed("option-selected", !active)
             if (active) {
                 // Reset node sizes back to size before algorithm
                 updateNodeSize();
@@ -25,7 +26,6 @@ export function graphOptionsBarInit() {
                 // Run algorithm
                 startSRWR();
             }
-            d3.select(this).classed("option-selected", !active)
         });
 
     d3.select("#option-date")
@@ -57,9 +57,10 @@ export function graphOptionsBarInit() {
     d3.select("#option-slider").append("title").text("Toggle parameter panel");
 
     // Date option is already selected.
-    if (d3.select("#option-date").classed("option-selected")) {
-        changeToDateColors();
-    }
+    if (d3.select("#option-date").classed("option-selected")) { changeToDateColors(); }
+
+    // Algorithm option is already selected.
+    d3.select("#option-algorithm").classed("option-selected", false)
 };
 
 // Hides or shows the options bar, depending on current state.

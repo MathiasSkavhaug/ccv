@@ -23,10 +23,10 @@ export function init(config=[]) {
     graphInit(config);
     graphInteractionInit();
     resizeInit();
+    graphOptionsBarInit();
     cardPanelInit();
     graphTooltipInit();
     graphSearchBarInit();
-    graphOptionsBarInit();
     graphParameterPanelInit();
 }
 

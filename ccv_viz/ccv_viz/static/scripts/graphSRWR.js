@@ -1,3 +1,4 @@
+import { updateWeightedVote } from "./cardPanel.js";
 import { ticked } from "./graphInit.js";
 import { getWeights } from "./graphParameterPanel.js";
 import { getAttrBetween, getLinkBetween, getNeighborsOfType, getSubGraphs, getNodesWithIds } from "./graphTraversal.js"
@@ -185,6 +186,7 @@ function updateNodeSizes(subGraphScoresTimeline, subGraphs, waitTime = 0) {
             await timer(waitTime);
         }
         collectDocScores();
+        updateWeightedVote();
     }
 
     updateSize();

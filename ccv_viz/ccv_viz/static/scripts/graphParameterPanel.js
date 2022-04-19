@@ -1,12 +1,16 @@
+import { updateWeightedVote } from "./cardPanel.js";
 import { ticked } from "./graphInit.js";
 import { resetNodeSize, scaleMatrix, scaleValues } from "./util.js";
 
-var active = 0;
+var active = -1;
 
 export function graphParameterPanelInit() {
     createParameterPanelImportance();
     createParameterPanelSRWR();
-    cycleActive();
+    if (active == -1) {
+        active = 0; 
+        cycleActive();
+    };
 
     d3.select("#parameter-panel-arrow")
         .on("click", function() {
@@ -205,6 +209,7 @@ function updateSize(type, weights) {
 // Updates document node sizes according to the weights.
 function updateDocSize(weights) {
     updateSize("document", weights);
+    updateWeightedVote();
 }
 
 // Updates author node sizes according to the the weights.
