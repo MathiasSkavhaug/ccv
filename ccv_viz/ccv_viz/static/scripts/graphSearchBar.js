@@ -22,14 +22,14 @@ export function graphSearchBarInit() {
 
 // Hides or shows the search bar, depending on current state.
 function toggleSearchBar() {
-    var searchBar = d3.select("#graph-search-bar")
-    var newState = 1
-    if (searchBar.style("opacity") == newState) { newState = 0 }
+    var newState = (d3.select("#search-arrow").classed("down")) ? 1 : 0;
 
-    searchBar
+    d3.select("#graph-search-bar")
         .transition()
         .duration(250)
-        .style("opacity", newState)
+        .style("margin-bottom", newState*5+"px")
+        .style("padding", newState*5+"px")
+        .style("height", newState*1.25+"rem")
 
     // flip search arrow
     d3.select("#search-arrow")
