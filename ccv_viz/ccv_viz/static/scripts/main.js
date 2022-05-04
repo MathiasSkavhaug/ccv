@@ -33,7 +33,7 @@ export function init(config=[]) {
 d3.select(window).on('load', function () {
     d3.text("/static/data/claims.txt", function(claims) {
         var claim = d3.csvParseRows(claims)[0];
-        initWithLoad("/search/"+claim)
+        initWithLoad("/search?claim="+encodeURIComponent(claim))
         initialState();
     });
 })

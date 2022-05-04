@@ -38,11 +38,11 @@ function toggleSearchBar() {
 
 // Run search
 function sendSearchRequest() {
-    var query = d3.select("#search-bar").node().value
+    var claim = d3.select("#search-bar").node().value
 
     // Remove graph and remake with new data.
     resetGraph()
-    initWithLoad("/search/"+encodeURIComponent(query))
+    initWithLoad("/search?claim="+encodeURIComponent(claim))
 
     toggleSearchBar()
     d3.select("#option-author").classed("option-selected", false)
