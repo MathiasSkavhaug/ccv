@@ -122,9 +122,12 @@ function createParameterPanelSRWR() {
 
     var sliders = [
         {"name": "Restart probability of the surfer (c)", "value": 0.5, "min": 0, "max": 1},
-        {"name": "Uncertainty of \"the enemy of my enemy is my friend\" (beta)", "value": 0.8, "min": 0, "max": 1},
-        {"name": "Uncertainty of \"the friend of my enemy is my enemy\" (gamma)", "value": 0.8, "min": 0, "max": 1},
-        {"name": "Delta threshold (epsilon)", "value": 0.01, "min": 0.001, "max": 1},
+        {"name": "Certainty of \"the friend of my friend is my friend\" (theta)", "value": 1, "min": 0, "max": 1},
+        {"name": "Certainty of \"the friend of my enemy is my enemy\" (mu)", "value": 1, "min": 0, "max": 1},
+        {"name": "Certainty of \"the enemy of my enemy is my friend\" (beta)", "value": 0.8, "min": 0, "max": 1},
+        {"name": "Certainty of \"the enemy of my friend is my enemy\" (gamma)", "value": 0.8, "min": 0, "max": 1},
+        {"name": "Error threshold (epsilon)", "value": 0.01, "min": 0.001, "max": 1},
+        {"name": "Animation step delay (seconds)", "value": 0, "min": 0, "max": 1},
     ];
 
     var panel = d3.select("#parameter-panel")

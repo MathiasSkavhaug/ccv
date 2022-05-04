@@ -7,21 +7,23 @@ import { scaleValues } from "./util.js";
 // Retrieves the parameters and runs SRWR.
 export function startSRWR() {
     var params = getParameters();
-    runSRWR(params.c, params.beta, params.gamma, params.epsilon)
+    runSRWR(params.c, params.theta, params.mu, params.beta, params.gamma, params.epsilon, params.delay)
 }
 
 // Retrives the SRWR parameters from the sliders.
 function getParameters() {
     var weights = getWeights("#SRWR-sliders");
-    return {"c": weights[0], "beta": weights[1], "gamma": weights[2], "epsilon": weights[3]}
+    return {"c": weights[0], "theta": weights[1], "mu": weights[2], "beta": weights[3], "gamma": weights[4], "epsilon": weights[5], "delay": 1000*weights[6]}
 };
 
-// Runs the SRWR algorithm on the evidence nodes only graph.
+// Runs the modified SRWR algorithm on the evidence nodes only graph.
 // c: restart probability of the surfer.
-// beta: parameter for the uncertainty of "the enemy of my enemy is my friend".
-// gamma: parameter for the uncertainty of "the friend of my enemy is my enemy".
-// epsilon: delta threshold.
-function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-2) {
+// theta: certainty of "the friend of my friend is my friend"
+// mu: certainty of "the friend of my enemy is my enemy"
+// beta: certainty of "the enemy of my enemy is my friend"
+// gamma: certainty of "the enemy of my friend is my enemy"
+// epsilon: error threshold.
+function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, delay=250) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
@@ -51,8 +53,8 @@ function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-2) {
             
             var delta;
             do {
-                rP = a(dm((1 - c), a(a(m(t(APos), rP), dm(beta, m(t(ANeg), rN))), dm((1 - gamma), m(t(APos), rN)))), dm(c, initialImportance))
-                rN = dm((1 - c), a(a(m(t(ANeg), rP), dm(gamma, m(t(APos), rN))), dm((1 - beta), m(t(ANeg), rN))))
+                rP = a(dm((1 - c), a(dm(theta, m(t(APos), rP)), a(dm((1-mu), m(t(ANeg), rP)), a(dm(beta, m(t(ANeg), rN)), dm((1-gamma), m(t(APos), rN)))))), dm(c, initialImportance))
+                rN =   dm((1 - c), a(dm((1-theta), m(t(APos), rP)), a(dm(mu, m(t(ANeg), rP)), a(dm((1-beta), m(t(ANeg), rN)), dm(gamma, m(t(APos), rN))))))
                 r = math.concat(rP, rN, 0)
                 delta = math.norm(s(r, rMark), 1)
                 rMark = r;
@@ -69,7 +71,7 @@ function runSRWR(c = 0.5, beta=0.5, gamma=0.9, epsilon=1e-2) {
         subGraphScoresTimeline.push(scoresTimeline);
     });
 
-    updateNodeSizes(subGraphScoresTimeline, subGraphs, 250);
+    updateNodeSizes(subGraphScoresTimeline, subGraphs, delay);
 };
 
 // Distributes each document's score to it's rationale(s).

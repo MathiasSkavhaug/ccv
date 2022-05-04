@@ -27,8 +27,8 @@ function toggleSearchBar() {
     d3.select("#graph-search-bar")
         .transition()
         .duration(250)
-        .style("margin-bottom", newState*5+"px")
-        .style("padding", newState*5+"px")
+        .style("margin-bottom", newState*0.8+"rem")
+        .style("padding", newState*1+"px")
         .style("height", newState*1.25+"rem")
 
     // flip search arrow

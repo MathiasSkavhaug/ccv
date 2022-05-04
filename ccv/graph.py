@@ -287,13 +287,14 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     d = {}
     # Only keep links in one direction.
     for i, link in enumerate(links):
-        target = link["source"]
-        source = link["target"]
+        target = link.get("source", None)
+        source = link.get("target", None)
+        if target is None or source is None:
+            continue
 
         d[(target, source)] = link
-
         # Only continue if evidence-evidence link
-        if "_" not in target:
+        if "_" not in source or "_" not in target:
             continue
 
         ele1 = d.get((target, source), {}).get("label", None)
