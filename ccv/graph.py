@@ -249,6 +249,7 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
                 "label": lmap[elink["label"]],
                 "width": elink["label_prob"],
                 "sentProb": elink["sent_prob"],
+                "bidirectional": False,
             }
         )
 
@@ -305,9 +306,20 @@ def create_graph(dinfo: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             if ele1[0] != ele2[0]:
                 d.pop((target, source))
                 d.pop((source, target))
-            # keep first one
+            # merge them together
             else:
-                d.pop((target, source))
+                link1 = d.pop((target, source))
+                link2 = d.pop((source, target))
+                links.append(
+                    {
+                        "target": link1["target"],
+                        "source": link1["source"],
+                        "label": link1["label"],
+                        "width": (link1["width"] + link2["width"]) / 2,
+                        "sentProb": (link1["sentProb"] + link2["sentProb"]) / 2,
+                        "bidirectional": True,
+                    }
+                )
 
     links = list(d.values())
 
