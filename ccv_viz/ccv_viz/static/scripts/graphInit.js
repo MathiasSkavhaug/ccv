@@ -127,6 +127,28 @@ function removeNode(id) {
     update();
 }
 
+// Adds a node, and its associated links and text, to the graph given the id.
+function addNode(id) {
+    let node = originalGraph.nodes.filter(d => d.id == id)[0];
+    currentGraph.nodes.push(node);
+    
+    let links = originalGraph.links.filter(d => d.target == id || d.source == id);
+    let presentNodes = currentGraph.nodes.map(d => d.id);
+    links = links.filter(d => presentNodes.includes(d.target) && presentNodes.includes(d.source));
+    currentGraph.links.push(...links);
+    
+    if (node.type == "document") {
+        texts.push(
+            {
+                "node": node, 
+                "text": node.authors.split(",")[0].split(" ").pop() +", "+ node.date.split("-").slice(0,2).join("-")
+            }
+        );
+    };
+
+    update();
+}
+
 // Keeps the graph up to date.
 export function ticked() {
     link
