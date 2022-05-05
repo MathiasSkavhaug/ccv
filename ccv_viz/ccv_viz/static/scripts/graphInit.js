@@ -7,6 +7,7 @@ var maxSize = 0;
 var nodeSizeRange = [5,15];
 var link;
 var node;
+var texts;
 var text;
 var currentGraph;
 var simulation;
@@ -49,48 +50,25 @@ export function graphInit(config) {
     link = viz.append("g")
             .classed("links", true)
         .selectAll("line")
-            .data(currentGraph.links)
-            .enter()
-        .append("line")
-            .classed("link", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.label})
-            .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
 
     node = viz.append("g")
             .classed("nodes", true)
         .selectAll("circle")
-            .data(currentGraph.nodes)
-            .enter()
-        .append("circle")
-            .classed("node", true)
-            .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.type})
-            .attr("r", function(d) {return d.size})
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
+
+    texts = currentGraph.nodes
+        .filter(d => d.type == "document")
+        .map(function(d) {
+            return {
+                "node": d, 
+                "text": d.authors.split(",")[0].split(" ").pop() +", "+ d.date.split("-").slice(0,2).join("-")
+            }
+        })
 
     text = viz.append("g")
             .classed("texts", true)
         .selectAll("text")
-            .data(currentGraph.nodes)
-            .enter()
-            .filter(function(d) {return d.type == "document"})
-        .append("text")
-            .classed("text", true)
-            .text(function(d) { return d.authors.split(",")[0].split(" ").pop() +", "+ d.date.split("-").slice(0,2).join("-") })
                 
-    node.append("title")
-        .text(function (d) {
-            return d.text;
-        });
-
-    simulation
-        .nodes(currentGraph.nodes)
-        .on("tick", ticked);
-
-    simulation.force("link")
-        .links(currentGraph.links);
+    update();
 
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
@@ -98,6 +76,58 @@ export function graphInit(config) {
     node.attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 };
 
+// Removes elements removed from underlying data.
+function update() {
+    link = link.data(currentGraph.links, d => d.id)
+    link.exit().remove();
+    link = link
+        .enter()
+    .append("line")
+        .classed("link", true)
+        .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.label})
+        .attr("stroke-width", function (d) {return d.width*baseLinkSize;})
+        .merge(link);
+
+    node = node.data(currentGraph.nodes, d => d.id)
+    node.exit().remove();
+    node = node
+        .enter()
+    .append("circle")
+        .classed("node", true)
+        .attr("class", function(d) { return d3.select(this).attr("class") + " " + d.type})
+        .attr("r", function(d) {return d.size})
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended))
+        .each(function() {
+            d3.select(this).append("title").text(d => d.text)
+        })
+        .merge(node);
+    
+    text = text.data(texts, d => d.id)
+    text.exit().remove();
+    text = text
+        .enter()
+    .append("text")
+        .classed("text", true)
+        .text(d => d.text)
+        .merge(text)
+
+    simulation.nodes(currentGraph.nodes).on("tick", ticked);
+    simulation.force("link").links(currentGraph.links);
+    simulation.alpha(1).restart();
+}
+
+// Removes a node, and its associated links and text, from the graph given the id.
+function removeNode(id) {
+    currentGraph.nodes = currentGraph.nodes.filter(d => d.id != id)
+    currentGraph.links = currentGraph.links.filter(function(d) {return d.target.id != id && d.source.id != id})
+    texts = texts.filter(d => d.node.id != id)
+    update();
+}
+
+// Keeps the graph up to date.
 export function ticked() {
     link
         .attr("x1", function (d) {return d.source.x;})
@@ -113,21 +143,24 @@ export function ticked() {
         .ease(d3.easeLinear)
         .attr("r", function(d) {return scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])})
 
-    text.attr("x", function(d) { return d.x })
-        .attr("y", function(d) { return d.y - 2 - scaleValue(d.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
+    text.attr("x", function(d) { return d.node.x })
+        .attr("y", function(d) { return d.node.y - 2 - scaleValue(d.node.size, minSize, maxSize, nodeSizeRange[0], nodeSizeRange[1])});
 }
 
+// Drag start
 function dragstarted(d) {
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
     d.fx = d.x;
     d.fy = d.y;
 }
 
+// Dragging
 function dragged(d) {
     d.fx = d3.event.x;
     d.fy = d3.event.y;
 }
 
+// Drag end
 function dragended(d) {
     if (!d3.event.active) simulation.alphaTarget(0);
     d.fx = null;
