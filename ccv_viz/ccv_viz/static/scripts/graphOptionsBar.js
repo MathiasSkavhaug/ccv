@@ -10,9 +10,11 @@ export function graphOptionsBarInit() {
 
     d3.select("#option-author")
         .on("click", function() {
-            toggleAuthors();
-            d3.select(this)
-                .classed("option-selected", !d3.select(this).classed("option-selected"));
+            var state = d3.select(this).classed("option-selected");
+            d3.select(this).classed("option-selected", !state);
+
+            resetGraph()
+            init()
         });
 
     d3.select("#option-algorithm")
@@ -82,16 +84,6 @@ function toggleOptionsBar() {
         .transition()
         .duration(250)
         .style("width", (newState == "3rem") * 32 + "px")
-}
-
-// Toggle author nodes.
-function toggleAuthors() {
-    resetGraph()
-    if (d3.select("#option-author").classed("option-selected")) {
-        init()
-    } else {
-        init(["author"])
-    }
 }
 
 // Changes node colors to reflect their date and adds a color bar to the graph.

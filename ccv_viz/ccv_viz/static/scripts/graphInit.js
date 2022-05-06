@@ -1,5 +1,6 @@
 import { scaleValue } from "./util.js"
 import { originalGraph } from "./main.js";
+import { resizeGraph } from "./graphResize.js";
 
 var baseLinkSize = 1.5;
 var minSize = 0;
@@ -12,7 +13,7 @@ var text;
 var currentGraph;
 var simulation;
 
-export function graphInit(config) {
+export function graphInit() {
     currentGraph = structuredClone(originalGraph)
 
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
@@ -37,10 +38,12 @@ export function graphInit(config) {
         return
     }
 
-    if (!config.includes("author")) {
-        currentGraph.links = currentGraph.links.filter(function(d) {return ["true","false","evidence","reference"].includes(d.label)})
-        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return ["claim", "document", "evidence"].includes(d.type)})
-    }
+    console.log(d3.select("#option-author").classed("option-selected"))
+
+    if (!d3.select("#option-author").classed("option-selected")) {
+        currentGraph.links = currentGraph.links.filter(function(d) {return d.label != "author"})
+        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return d.type != "author"})
+    };
 
     simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {return d.id;}))
@@ -67,9 +70,10 @@ export function graphInit(config) {
     text = viz.append("g")
             .classed("texts", true)
         .selectAll("text")
-
-    update();
-
+    
+    
+    update(false);
+        
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
     maxSize = d3.max(node.data(), function (d) { return d.size; });
@@ -77,7 +81,7 @@ export function graphInit(config) {
 };
 
 // Removes elements removed from underlying data.
-function update() {
+function update(resize=true) {
     link = link.data(currentGraph.links, d => d.id)
     link.exit().remove();
     link = link
@@ -117,6 +121,12 @@ function update() {
     simulation.nodes(currentGraph.nodes).on("tick", ticked);
     simulation.force("link").links(currentGraph.links);
     simulation.alpha(1).restart();
+
+    if (resize) {
+        setTimeout(() => {
+            resizeGraph();
+        }, 1000);
+    }
 }
 
 // Removes a node, and its associated links and text, from the graph given the id.
@@ -152,7 +162,6 @@ function addNode(id) {
     update();
 }
 
-
 // Removes a link between two nodes.
 function removeLink(id1, id2) {
     currentGraph.links = currentGraph.links.filter(d => (d.target.id != id1 || d.source.id != id2) && (d.target.id != id2 || d.source.id != id1))
@@ -175,6 +184,20 @@ function addLink(id1, id2) {
 function removeDetachedNodes() {
     let nodes = currentGraph.links.map(d => d.target.id).concat(currentGraph.links.map(d => d.source.id))
     currentGraph.nodes = currentGraph.nodes.filter(d => nodes.includes(d.id))
+    update();
+}
+
+// Removes nodes of type "type", and their associated links and text, from the graph.
+export function removeAllNodesOfType(type) {
+    let nodes = currentGraph.nodes.filter(d => d.type == type)
+    nodes.forEach(d => { removeNode(d.id) });
+    update();
+}
+
+// (re-)Adds nodes of type "type", and their associated links and text, to the graph.
+export function addAllNodesOfType(type) {
+    let nodes = originalGraph.nodes.filter(d => d.type == type)
+    nodes.forEach(d => { addNode(d.id) });
     update();
 }
 

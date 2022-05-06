@@ -19,8 +19,8 @@ export function initWithLoad(graphResource) {
     });
 };
 
-export function init(config=[]) {
-    graphInit(config);
+export function init() {
+    graphInit();
     graphInteractionInit();
     resizeInit();
     graphOptionsBarInit();
