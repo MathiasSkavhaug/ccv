@@ -1,5 +1,6 @@
 import { updateWeightedVote } from "./cardPanel.js";
-import { ticked } from "./graphInit.js";
+import { addLink, removeLink, ticked } from "./graphInit.js";
+import { originalGraph } from "./main.js";
 import { resetNodeSize, scaleMatrix, scaleValues } from "./util.js";
 
 var active = -1;
@@ -7,6 +8,7 @@ var active = -1;
 export function graphParameterPanelInit() {
     createParameterPanelImportance();
     createParameterPanelSRWR();
+    createParameterPanelFilter();
     if (active == -1) {
         active = 0; 
         cycleActive();
@@ -36,6 +38,10 @@ function cycleActive() {
                     break;
                 case 1:
                     panel = "#SRWR-sliders";
+                    active = 2;
+                    break;
+                case 2:
+                    panel = "#filter-sliders";
                     active = 0;
                     break;
             }
@@ -53,7 +59,7 @@ function cycleActive() {
 }
 
 //Appends a slider to target with name "name" and initial value "initialValue".
-function appendSlider(target, slider) {
+function appendSlider(target, slider, callback) {
     // Displays the value of the slider
     var value = d3.select(target)
         .append("div")
@@ -73,7 +79,7 @@ function appendSlider(target, slider) {
         })
         .on("input", function() {
             value.html(parseFloat(d3.select(this).node().value).toFixed(3));
-            updateNodeSize();
+            callback();
         })
 
     // Displays the attribute name for the slider
@@ -111,7 +117,7 @@ function createParameterPanelImportance() {
         panel
             .append("div")
             .classed("slider", true)
-            .each(function() {appendSlider(this, s)});
+            .each(function() {appendSlider(this, s, updateNodeSize)});
     });
 };
 
@@ -144,9 +150,38 @@ function createParameterPanelSRWR() {
         panel
             .append("div")
             .classed("slider", true)
-            .each(function() {appendSlider(this, s)});
+            .each(function() {appendSlider(this, s, updateNodeSize)});
     });
 }
+
+// Creates the graph filtering parameter panel.
+function createParameterPanelFilter() {
+    // If already instantiated, return.
+    if (d3.select("#filter-sliders").data().length !== 0) { return }
+
+    var sliders = [
+        {"name": "Evidence-evidence link minimum weight", "value": 0, "min": 0, "max": 1},
+        {"name": "Evidence-evidence link minimum sentence probability", "value": 0, "min": 0, "max": 1},
+        {"name": "Evidence-evidence link must be bidirectional", "value": 0, "min": 0, "max": 1},
+    ];
+
+    var panel = d3.select("#parameter-panel")
+        .append("div")
+        .classed("panel-sliders", true)
+        .attr("id", "filter-sliders")
+    
+    panel
+        .append("div")
+        .classed("parameter-panel-title", true)
+        .html("Filters applied to graph");
+
+    sliders.forEach(function(s) {
+        panel
+            .append("div")
+            .classed("slider", true)
+            .each(function() {appendSlider(this, s, filterGraph)});
+    });
+};
 
 // Opens the parameter panel
 export function openParameterPanel() {
@@ -219,3 +254,28 @@ function updateDocSize(weights) {
 function updateAutSize(weights) {
     updateSize("author", weights);
 }
+
+// Filters the graph based on the filter parameters.
+function filterGraph() {
+    function isFiltered(l) {
+        // todo: tmp
+        return math.randomInt(2)
+    }
+    
+    originalGraph.links
+        .filter(l => l.target.includes("_") && l.source.includes("_"))
+        .forEach(l => {
+            var present = d3.selectAll(".link").data().filter(d => d.target.id == l.target && d.source.id == l.source)
+            if (isFiltered(l)) {
+                // Only remove if present.
+                if (present.length == 1) {
+                    removeLink(l.target, l.source)
+                };
+            } else {
+                // Only add if not present.
+                if (present.length == 0) {
+                    addLink(l.target, l.source)
+                };
+            }
+        });
+};

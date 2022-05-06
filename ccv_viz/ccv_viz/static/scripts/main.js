@@ -10,15 +10,17 @@ import { graphParameterPanelInit } from "./graphParameterPanel.js"
 
 export var originalGraph;
 
-export function initWithLoad(graphResource) {
+// Sets the graph to the one found at graphResource and calls the callback.
+export function setGraph(graphResource, callback) {
     d3.json(graphResource, function (error, graph) {
         if (error) throw error;
 
         originalGraph = graph;
-        init()
+        callback();
     });
 };
 
+// Initialization
 export function init() {
     graphInit();
     graphInteractionInit();
@@ -28,12 +30,13 @@ export function init() {
     graphTooltipInit();
     graphSearchBarInit();
     graphParameterPanelInit();
+    initialState();
 }
 
+// On load
 d3.select(window).on('load', function () {
     d3.text("/static/data/claims.txt", function(claims) {
         var claim = d3.csvParseRows(claims)[0];
-        initWithLoad("/search?claim="+encodeURIComponent(claim))
-        initialState();
+        setGraph("/search?claim="+encodeURIComponent(claim), init);
     });
-})
+});

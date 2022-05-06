@@ -1,8 +1,8 @@
-import { init } from "./main.js"
 import { resetGraph } from "./util.js"
 import { startSRWR } from "./graphSRWR.js"
 import { getNeighborsOfType, getNodesWithIds } from "./graphTraversal.js";
 import { updateNodeSize, openParameterPanel, closeParameterPanel } from "./graphParameterPanel.js"
+import { addAllNodes } from "./graphInit.js";
 
 export function graphOptionsBarInit() {
     d3.select("#options-arrow")
@@ -13,7 +13,8 @@ export function graphOptionsBarInit() {
             var state = d3.select(this).classed("option-selected");
             d3.select(this).classed("option-selected", !state);
 
-            resetGraph()
+            resetGraph();
+            addAllNodes();
         });
 
     d3.select("#option-algorithm")

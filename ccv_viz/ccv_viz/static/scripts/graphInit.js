@@ -162,7 +162,7 @@ function addNode(id) {
 }
 
 // Removes a link between two nodes.
-function removeLink(id1, id2) {
+export function removeLink(id1, id2) {
     currentGraph.links = currentGraph.links.filter(d => (d.target.id != id1 || d.source.id != id2) && (d.target.id != id2 || d.source.id != id1))
 
     removeDetachedNodes();
@@ -171,8 +171,8 @@ function removeLink(id1, id2) {
 }
 
 // (re-)Adds a link between two nodes.
-function addLink(id1, id2) {
-    let links = originalGraph.links.filter(d => (d.target == id1 && d.source == id2) || (d.target == id2 && d.source == id1))
+export function addLink(id1, id2) {
+    let links = structuredClone(originalGraph.links.filter(d => (d.target == id1 && d.source == id2) || (d.target == id2 && d.source == id1)))
     let presentNodes = currentGraph.nodes.map(d => d.id);
     links = links.filter(d => presentNodes.includes(d.target) && presentNodes.includes(d.source));
     currentGraph.links.push(...links);
@@ -181,8 +181,10 @@ function addLink(id1, id2) {
 
 // Remove nodes with no links
 function removeDetachedNodes() {
+    // All current linked nodes
     let nodes = currentGraph.links.map(d => d.target.id).concat(currentGraph.links.map(d => d.source.id))
     currentGraph.nodes = currentGraph.nodes.filter(d => nodes.includes(d.id))
+    currentGraph.texts = currentGraph.texts.filter(d => nodes.includes(d.node.id))
     update();
 }
 

@@ -6,7 +6,6 @@ import { originalGraph } from "./main.js";
 export function resetGraph() {
     removeAllNodes();
     closeCardPanel();
-    addAllNodes();
 };
 
 // Resets all nodes matching "selection" to their original size.

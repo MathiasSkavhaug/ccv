@@ -1,4 +1,5 @@
-import { initWithLoad } from "./main.js"
+import { addAllNodes } from "./graphInit.js";
+import { setGraph } from "./main.js"
 import { resetGraph } from "./util.js"
 
 export function graphSearchBarInit() {
@@ -41,8 +42,8 @@ function sendSearchRequest() {
     var claim = d3.select("#search-bar").node().value
 
     // Remove graph and remake with new data.
-    resetGraph()
-    initWithLoad("/search?claim="+encodeURIComponent(claim))
+    resetGraph();
+    setGraph("/search?claim="+encodeURIComponent(claim), addAllNodes);
 
     toggleSearchBar()
     d3.select("#option-author").classed("option-selected", false)
