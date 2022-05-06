@@ -70,9 +70,6 @@ export function graphInit() {
         .selectAll("text")
     
     update(false);
-
-    setTimeout(() => {removeAllNodes()}, 2500);
-    setTimeout(() => {addAllNodes()}, 2501);
         
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
