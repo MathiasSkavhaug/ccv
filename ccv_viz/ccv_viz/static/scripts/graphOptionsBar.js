@@ -14,7 +14,6 @@ export function graphOptionsBarInit() {
             d3.select(this).classed("option-selected", !state);
 
             resetGraph()
-            init()
         });
 
     d3.select("#option-algorithm")

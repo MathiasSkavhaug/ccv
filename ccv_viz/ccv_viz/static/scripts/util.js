@@ -1,14 +1,12 @@
 import { closeCardPanel } from "./cardPanel.js";
-import { ticked } from "./graphInit.js";
+import { addAllNodes, removeAllNodes, ticked } from "./graphInit.js";
 import { originalGraph } from "./main.js";
 
 // Resets the graph
 export function resetGraph() {
-    d3.select("#graph-svg")
-        .selectAll("*")
-        .remove();
-
+    removeAllNodes();
     closeCardPanel();
+    addAllNodes();
 };
 
 // Resets all nodes matching "selection" to their original size.

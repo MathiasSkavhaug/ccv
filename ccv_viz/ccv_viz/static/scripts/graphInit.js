@@ -1,6 +1,7 @@
 import { scaleValue } from "./util.js"
 import { originalGraph } from "./main.js";
 import { resizeGraph } from "./graphResize.js";
+import { graphInteractionInit } from "./graphInteraction.js";
 
 var baseLinkSize = 1.5;
 var minSize = 0;
@@ -8,7 +9,6 @@ var maxSize = 0;
 var nodeSizeRange = [5,15];
 var link;
 var node;
-var texts;
 var text;
 var currentGraph;
 var simulation;
@@ -38,8 +38,6 @@ export function graphInit() {
         return
     }
 
-    console.log(d3.select("#option-author").classed("option-selected"))
-
     if (!d3.select("#option-author").classed("option-selected")) {
         currentGraph.links = currentGraph.links.filter(function(d) {return d.label != "author"})
         currentGraph.nodes = currentGraph.nodes.filter(function(d) {return d.type != "author"})
@@ -58,7 +56,7 @@ export function graphInit() {
             .classed("nodes", true)
         .selectAll("circle")
 
-    texts = currentGraph.nodes
+    currentGraph.texts = currentGraph.nodes
         .filter(d => d.type == "document")
         .map(function(d) {
             return {
@@ -71,8 +69,10 @@ export function graphInit() {
             .classed("texts", true)
         .selectAll("text")
     
-    
     update(false);
+
+    setTimeout(() => {removeAllNodes()}, 2500);
+    setTimeout(() => {addAllNodes()}, 2501);
         
     // Scale nodes to nodeSizeRange.
     minSize = d3.min(node.data(), function (d) { return d.size; });
@@ -109,7 +109,7 @@ function update(resize=true) {
         })
         .merge(node);
     
-    text = text.data(texts, d => d.id)
+    text = text.data(currentGraph.texts, d => d.id)
     text.exit().remove();
     text = text
         .enter()
@@ -122,10 +122,12 @@ function update(resize=true) {
     simulation.force("link").links(currentGraph.links);
     simulation.alpha(1).restart();
 
+    graphInteractionInit();
+
     if (resize) {
         setTimeout(() => {
             resizeGraph();
-        }, 1000);
+        }, 500);
     }
 }
 
@@ -133,7 +135,7 @@ function update(resize=true) {
 function removeNode(id) {
     currentGraph.nodes = currentGraph.nodes.filter(d => d.id != id)
     currentGraph.links = currentGraph.links.filter(function(d) {return d.target.id != id && d.source.id != id})
-    texts = texts.filter(d => d.node.id != id)
+    currentGraph.texts = currentGraph.texts.filter(d => d.node.id != id)
 
     removeDetachedNodes();
 
@@ -198,6 +200,34 @@ export function removeAllNodesOfType(type) {
 export function addAllNodesOfType(type) {
     let nodes = originalGraph.nodes.filter(d => d.type == type)
     nodes.forEach(d => { addNode(d.id) });
+    update();
+}
+
+// Removes all nodes.
+export function removeAllNodes() {
+    currentGraph.nodes = [];
+    currentGraph.links = [];
+    currentGraph.texts = [];
+    update();
+}
+
+// Adds all nodes.
+export function addAllNodes() {
+    currentGraph.nodes = originalGraph.nodes;
+    currentGraph.links = originalGraph.links;
+    currentGraph.texts = currentGraph.nodes
+    .filter(d => d.type == "document")
+    .map(function(d) {
+        return {
+            "node": d, 
+            "text": d.authors.split(",")[0].split(" ").pop() +", "+ d.date.split("-").slice(0,2).join("-")
+        }
+    })
+
+    if (!d3.select("#option-author").classed("option-selected")) {
+        currentGraph.links = currentGraph.links.filter(function(d) {return d.label != "author"})
+        currentGraph.nodes = currentGraph.nodes.filter(function(d) {return d.type != "author"})
+    };
     update();
 }
 
