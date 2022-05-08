@@ -78,6 +78,10 @@ export function populateCardPanel(node, dom=true) {
         .append("div")
             .attr("id", "evidence-container")
             
+    if (nodeType == "claim") {
+        evidences = evidences.sort((a,b) => d3.descending(new Date(a.date), new Date(b.date)))
+    }
+
     evidences
         .each(function(d) {
             var div = d3.select("#evidence-container").append("div")
