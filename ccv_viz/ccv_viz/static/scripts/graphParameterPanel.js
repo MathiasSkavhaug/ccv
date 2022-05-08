@@ -3,60 +3,11 @@ import { addLink, removeLink, ticked } from "./graphInit.js";
 import { originalGraph } from "./main.js";
 import { resetNodeSize, scaleMatrix, scaleValues } from "./util.js";
 
-var active = -1;
-
 export function graphParameterPanelInit() {
     createParameterPanelImportance();
     createParameterPanelSRWR();
     createParameterPanelFilter();
-    if (active == -1) {
-        active = 0; 
-        cycleActive();
-    };
-
-    d3.select("#parameter-panel-arrow")
-        .on("click", function() {
-            cycleActive();
-        });
 };
-
-// Cycles which parameter panel is currently displayed.
-function cycleActive() {
-    d3.select("#graph-parameter-panel-container")
-        .transition()
-        .duration(250)
-        .style("height", "0px")
-        .on("end", function() {
-            d3.selectAll(".panel-sliders")
-                .style("display", "none");
-        
-            var panel;
-            switch (active) {
-                case 0:
-                    panel = "#importance-sliders";
-                    active = 1;
-                    break;
-                case 1:
-                    panel = "#SRWR-sliders";
-                    active = 2;
-                    break;
-                case 2:
-                    panel = "#filter-sliders";
-                    active = 0;
-                    break;
-            }
-        
-            d3.select(panel)
-                .style("display", "block");
-
-            if (d3.select("#option-slider").classed("option-selected")) {
-                d3.select(this)
-                    .transition()
-                    .duration(250)
-                    .style("height", d3.select("#parameter-panel").style("height"));
-            };
-        });
-}
 
 //Appends a slider to target with name "name" and initial value "initialValue".
 function appendSlider(target, slider, callback) {
@@ -72,7 +23,7 @@ function appendSlider(target, slider, callback) {
         .attr("type", "range")
         .attr("min", slider.min)
         .attr("max", slider.max)
-        .attr("step", 0.0001)
+        .attr("step", slider.step)
         .attr("value", slider.value)
         .each(function() {
             value.html(parseFloat(d3.select(this).node().value).toFixed(3));
@@ -95,12 +46,12 @@ function createParameterPanelImportance() {
     if (d3.select("#importance-sliders").data().length !== 0) { return }
 
     var sliders = [
-        {"name": "Document citation count", "value": 0.5, "min": 0, "max": 1},
-        {"name": "Document influential citation count", "value": 0.5, "min": 0, "max": 1},
-        {"name": "Author paper counts", "value": 0.5, "min": 0, "max": 1}, 
-        {"name": "Author citation counts", "value": 0.5, "min": 0, "max": 1}, 
-        {"name": "Author h-indices", "value": 0.5, "min": 0, "max": 1}, 
-        {"name": "Publish date", "value": 0.5, "min": 0, "max": 1}, 
+        {"name": "Document citation count", "value": 0.5, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Document influential citation count", "value": 0.5, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Author paper counts", "value": 0.5, "min": 0, "max": 1, "step": 0.0001}, 
+        {"name": "Author citation counts", "value": 0.5, "min": 0, "max": 1, "step": 0.0001}, 
+        {"name": "Author h-indices", "value": 0.5, "min": 0, "max": 1, "step": 0.0001}, 
+        {"name": "Publish date", "value": 0.5, "min": 0, "max": 1, "step": 0.0001}, 
     ];
 
     var panel = d3.select("#parameter-panel")
@@ -127,13 +78,13 @@ function createParameterPanelSRWR() {
     if (d3.select("#SRWR-sliders").data().length !== 0) { return }
 
     var sliders = [
-        {"name": "Restart probability of the surfer (c)", "value": 0.5, "min": 0, "max": 1},
-        {"name": "Certainty of \"the friend of my friend is my friend\" (theta)", "value": 1, "min": 0, "max": 1},
-        {"name": "Certainty of \"the friend of my enemy is my enemy\" (mu)", "value": 1, "min": 0, "max": 1},
-        {"name": "Certainty of \"the enemy of my enemy is my friend\" (beta)", "value": 0.8, "min": 0, "max": 1},
-        {"name": "Certainty of \"the enemy of my friend is my enemy\" (gamma)", "value": 0.8, "min": 0, "max": 1},
-        {"name": "Error threshold (epsilon)", "value": 0.01, "min": 0.001, "max": 1},
-        {"name": "Animation step delay (seconds)", "value": 0, "min": 0, "max": 1},
+        {"name": "Restart probability of the surfer (c)", "value": 0.5, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Certainty of \"the friend of my friend is my friend\" (theta)", "value": 1, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Certainty of \"the friend of my enemy is my enemy\" (mu)", "value": 1, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Certainty of \"the enemy of my enemy is my friend\" (beta)", "value": 0.8, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Certainty of \"the enemy of my friend is my enemy\" (gamma)", "value": 0.8, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Error threshold (epsilon)", "value": 0.01, "min": 0.001, "max": 1, "step": 0.0001},
+        {"name": "Animation step delay (seconds)", "value": 0, "min": 0, "max": 1, "step": 0.0001},
     ];
 
     var panel = d3.select("#parameter-panel")
@@ -160,9 +111,9 @@ function createParameterPanelFilter() {
     if (d3.select("#filter-sliders").data().length !== 0) { return }
 
     var sliders = [
-        {"name": "Evidence-evidence link minimum weight", "value": 0, "min": 0, "max": 1},
-        {"name": "Evidence-evidence link minimum sentence probability", "value": 0, "min": 0, "max": 1},
-        {"name": "Evidence-evidence link must be bidirectional", "value": 0, "min": 0, "max": 1},
+        {"name": "Evidence-evidence link minimum weight", "value": 0, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Evidence-evidence link minimum sentence probability", "value": 0, "min": 0, "max": 1, "step": 0.0001},
+        {"name": "Evidence-evidence link must be bidirectional", "value": 0, "min": 0, "max": 1, "step": 1},
     ];
 
     var panel = d3.select("#parameter-panel")
@@ -188,7 +139,7 @@ export function openParameterPanel() {
     d3.select("#graph-parameter-panel-container")
         .transition()
         .duration(250)
-        .style("height", d3.select("#parameter-panel").style("height"));
+        .style("height", "35%");
 };
 
 // Closes the parameter panel
@@ -196,7 +147,7 @@ export function closeParameterPanel() {
     d3.select("#graph-parameter-panel-container")
         .transition()
         .duration(250)
-        .style("height", "0px");
+        .style("height", "0%");
 };
 
 // Retrieves the slider weights
@@ -256,10 +207,24 @@ function updateAutSize(weights) {
 }
 
 // Filters the graph based on the filter parameters.
-function filterGraph() {
+export function filterGraph() {
     function isFiltered(l) {
-        // todo: tmp
-        return math.randomInt(2)
+        var weights = getWeights("#filter-sliders")
+        var thresholds = {
+            "labelProb": weights[0],
+            "sentProb": weights[1],
+            "bidirectional": weights[2],
+        }
+
+        var filter = false;
+        if (l.width < thresholds.labelProb) {
+            filter = true;
+        } else if (l.sentProb < thresholds.sentProb) {
+            filter = true;
+        } else if (l.bidirectional < thresholds.bidirectional) {
+            filter = true;
+        }
+        return filter
     }
     
     originalGraph.links

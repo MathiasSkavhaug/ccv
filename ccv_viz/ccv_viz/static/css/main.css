@@ -31,5 +31,5 @@ html, body, #container {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--graph-color);
+  background-color: #a2a2a2;
 }

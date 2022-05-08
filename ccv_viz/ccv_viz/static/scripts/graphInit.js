@@ -2,6 +2,7 @@ import { scaleValue } from "./util.js"
 import { originalGraph } from "./main.js";
 import { resizeGraph } from "./graphResize.js";
 import { graphInteractionInit } from "./graphInteraction.js";
+import { filterGraph } from "./graphParameterPanel.js";
 
 var baseLinkSize = 1.5;
 var minSize = 0;
@@ -14,7 +15,7 @@ var currentGraph;
 var simulation;
 
 export function graphInit() {
-    currentGraph = structuredClone(originalGraph)
+    currentGraph = structuredClone(originalGraph) 
 
     var width = d3.select("#graph-container").node().getBoundingClientRect().width,
         height = d3.select("#graph-container").node().getBoundingClientRect().height;
@@ -141,10 +142,10 @@ function removeNode(id) {
 
 // (re-)Adds a node, and its associated links and text, to the graph given the id.
 function addNode(id) {
-    let node = originalGraph.nodes.filter(d => d.id == id)[0];
+    let node = structuredClone(originalGraph.nodes.filter(d => d.id == id)[0]);
     currentGraph.nodes.push(node);
     
-    let links = originalGraph.links.filter(d => d.target == id || d.source == id);
+    let links = structuredClone(originalGraph.links.filter(d => d.target == id || d.source == id));
     let presentNodes = currentGraph.nodes.map(d => d.id);
     links = links.filter(d => presentNodes.includes(d.target) && presentNodes.includes(d.source));
     currentGraph.links.push(...links);
@@ -197,7 +198,7 @@ export function removeAllNodesOfType(type) {
 
 // (re-)Adds nodes of type "type", and their associated links and text, to the graph.
 export function addAllNodesOfType(type) {
-    let nodes = originalGraph.nodes.filter(d => d.type == type)
+    let nodes = structuredClone(originalGraph.nodes.filter(d => d.type == type));
     nodes.forEach(d => { addNode(d.id) });
     update();
 }
@@ -212,8 +213,8 @@ export function removeAllNodes() {
 
 // Adds all nodes.
 export function addAllNodes() {
-    currentGraph.nodes = originalGraph.nodes;
-    currentGraph.links = originalGraph.links;
+    currentGraph.nodes = structuredClone(originalGraph.nodes);
+    currentGraph.links = structuredClone(originalGraph.links);
     currentGraph.texts = currentGraph.nodes
     .filter(d => d.type == "document")
     .map(function(d) {
@@ -228,6 +229,8 @@ export function addAllNodes() {
         currentGraph.nodes = currentGraph.nodes.filter(function(d) {return d.type != "author"})
     };
     update();
+
+    filterGraph();
 }
 
 // Keeps the graph up to date.

@@ -3,26 +3,26 @@
     left: 0px;
     bottom: 0px;
     height: 0px;
-    overflow: hidden;
+    width: 50%;
+    height: 0%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #parameter-panel {
     background-color: var(--panel-color);
     color: var(--border-color);
-    border-radius: 0px 10px 0px 0;
+    /*border-radius: 0px 10px 0px 0;*/
 }
 
 .parameter-panel-title {
-    text-align: center;
+    text-align: left;
     width: 100%;
     text-decoration: underline;
     font-size: large;
     padding-top: 5px;
     padding-bottom: 5px;
-}
-
-.panel-sliders {
-    display: none;
+    margin-left: 5px;
 }
 
 .slider {
@@ -43,14 +43,9 @@
     margin-left: 1rem;
     margin-right: 1rem;
 }
-
-#parameter-panel-arrow {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 1rem;
-    height: 1rem;
-    fill: var(--border-color);
-    margin: 5px;
-    cursor: pointer;
+.slider-value {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
 }
