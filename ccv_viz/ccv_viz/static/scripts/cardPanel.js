@@ -235,28 +235,38 @@ function resizeCardPanel() {
 
 // Returns prediction of claim veracity based on majority vote.
 function getMajorityVote() {
+    var mean = calcMajorityVote();
+    var label = (mean > 0 ? "True" : "False");
+    return "<span class='"+label.toLowerCase()+"'>" + label + " " + "("+mean.toFixed(3)+")" + "</span>";
+};
+
+// Calculates majority vote.
+export function calcMajorityVote() {
     var votes = [];
     getNodeLinks(d3.select(".node.claim").data()[0])
         .each(function(d) {
             votes.push(d.label == "true" ? 1 : -1)
         });
-    var mean = math.mean(votes);
+    return math.mean(votes);
+}
+
+// Returns prediction of claim veracity based on weighted vote.
+function getWeightedVote() {
+    var mean = calcWeightedVote();
     var label = (mean > 0 ? "True" : "False");
     return "<span class='"+label.toLowerCase()+"'>" + label + " " + "("+mean.toFixed(3)+")" + "</span>";
 };
 
-// Returns prediction of claim veracity based on weighted vote.
-function getWeightedVote() {
+// Calculates weighted vote.
+export function calcWeightedVote() {
     var votes = [];
     getNodeLinks(d3.select(".node.claim").data()[0])
         .each(function(l) {
             var d = (l.target.id == "Claim" ? l.source : l.target)
             votes.push(l.label == "true" ? d.size : -d.size)
         });
-    var mean = math.mean(votes);
-    var label = (mean > 0 ? "True" : "False");
-    return "<span class='"+label.toLowerCase()+"'>" + label + " " + "("+mean.toFixed(3)+")" + "</span>";
-};
+    return math.mean(votes);
+}
 
 // Updates the correct prediction.
 export function updateWeightedVote() {

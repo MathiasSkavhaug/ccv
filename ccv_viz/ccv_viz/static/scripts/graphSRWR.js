@@ -7,8 +7,8 @@ import { scaleValues } from "./util.js";
 // Retrieves the parameters and runs SRWR.
 export function startSRWR() {
     var params = getParameters();
-    runSRWR(params.c, params.theta, params.mu, params.beta, params.gamma, params.epsilon, params.delay)
-}
+    runSRWR(params.c, params.theta, params.mu, params.beta, params.gamma, params.epsilon, params.delay);
+};
 
 // Retrives the SRWR parameters from the sliders.
 function getParameters() {
@@ -23,7 +23,7 @@ function getParameters() {
 // beta: certainty of "the enemy of my enemy is my friend"
 // gamma: certainty of "the enemy of my friend is my enemy"
 // epsilon: error threshold.
-function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, delay=250) {
+export function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, delay=250) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
@@ -52,6 +52,7 @@ function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, 
             var rMark = math.concat(rP, rN, 0)
             
             var delta;
+            var counter = 0;
             do {
                 rP = a(dm((1 - c), a(dm(theta, m(t(APos), rP)), a(dm((1-mu), m(t(ANeg), rP)), a(dm(beta, m(t(ANeg), rN)), dm((1-gamma), m(t(APos), rN)))))), dm(c, initialImportance))
                 rN =   dm((1 - c), a(dm((1-theta), m(t(APos), rP)), a(dm(mu, m(t(ANeg), rP)), a(dm((1-beta), m(t(ANeg), rN)), dm(gamma, m(t(APos), rN))))))
@@ -59,12 +60,21 @@ function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, 
                 delta = math.norm(s(r, rMark), 1)
                 rMark = r;
                 scoresTimeline.push(t(s(rP, rN))._data[0])
+                
+                counter += 1
+                // Does not converge.
+                if (counter == 50) {
+                    scoresTimeline.push(Array(subGraph.length).fill(null).map(() => 1/subGraph.length))
+                    break;
+                }
+
             } while (delta > epsilon);
         }
 
         scoresTimeline = scoresTimeline.map(function(s) {
             var scaled = scaleValues(s, 0, 1);
-            s = scaled.map(v => v/math.sum(scaled));
+            var sum = math.sum(scaled)
+            s = scaled.map(v => (sum != 0) ? v/sum : 1/s.length);
             return getUnnormalizedSubGraphScores(s, subGraphSum);
         });
 
@@ -191,5 +201,13 @@ function updateNodeSizes(subGraphScoresTimeline, subGraphs, waitTime = 0) {
         updateWeightedVote();
     }
 
-    updateSize();
+    // No need to be async if no delay
+    if (waitTime == 0) {
+        var subGraphScores = subGraphScoresTimeline.map(sg => sg.pop())
+        updateEvidenceSize(subGraphScores, subGraphs)
+        collectDocScores();
+        updateWeightedVote();
+    } else {
+        updateSize();
+    }
 }

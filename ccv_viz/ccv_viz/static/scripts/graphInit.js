@@ -13,6 +13,7 @@ var node;
 var text;
 var currentGraph;
 var simulation;
+var keepUpdated = true;
 
 export function graphInit() {
     currentGraph = structuredClone(originalGraph) 
@@ -235,6 +236,8 @@ export function addAllNodes() {
 
 // Keeps the graph up to date.
 export function ticked() {
+    if (!keepUpdated) { return; }
+
     link
         .attr("x1", function (d) {return d.source.x;})
         .attr("y1", function (d) {return d.source.y;})
@@ -272,3 +275,9 @@ function dragended(d) {
     d.fx = null;
     d.fy = null;
 }
+
+// Turns on graph visualization updating
+export function startUpdates() { keepUpdated = true; }
+
+// Turns off graph visualization updating
+export function stopUpdates() { keepUpdated = false; }

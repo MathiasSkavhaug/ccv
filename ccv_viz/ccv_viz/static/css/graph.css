@@ -76,6 +76,8 @@ text.text {
     stroke: var(--panel-color);
     stroke-width: 0.1px;
     text-anchor: middle;
+    pointer-events: none;
+    cursor: default;
 }
 
 .arrow {
