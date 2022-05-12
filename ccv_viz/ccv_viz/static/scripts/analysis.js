@@ -4,8 +4,8 @@ import { runSRWR } from "./graphSRWR.js";
 import { setGraph } from "./main.js";
 import { resetGraph } from "./util.js";
 
-// Runs the grid search.
-export async function gridSearch() {
+// Calculates the result of the algorithm for many different parameter combinations.
+export async function gridCalc() {
     stopUpdates();
 
     var claims = d3.selectAll("#search-bar > option").data().map(o => o.join(","));
