@@ -23,30 +23,36 @@ function getParameters() {
 // beta: certainty of "the enemy of my enemy is my friend"
 // gamma: certainty of "the enemy of my friend is my enemy"
 // epsilon: error threshold.
-export function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon=1e-2, delay=250) {
+export function runSRWR(c = 0.5, theta = 1, mu = 1, beta = 0.5, gamma = 0.9, epsilon = 0.01, delay = 0, subGraphs, subGraphRs) {
     var m = math.multiply, dm = math.dotMultiply, t = math.transpose, a = math.add, s = math.subtract;
 
     distributeDocScores();
-
-    var evidences = d3.selectAll(".node.evidence").data().map(function(d) {return d.id});
-    var subGraphs = getSubGraphs(evidences);
-
+    
+    if (typeof subGraphs === "undefined") {
+        var evidences = d3.selectAll(".node.evidence").data().map(function(d) {return d.id});
+        var subGraphs = getSubGraphs(evidences);
+    }
+    
     var subGraphScoresTimeline = [];
-    subGraphs.forEach(function(subGraph) {
+    subGraphs.forEach(function(subGraph, i) {
         var scoresTimeline = [];
         var subGraphSum = math.sum(getNodesWithIds(subGraph).data().map(n => n.size))
-
+        
         var scores = getNormalizedSubGraphScores(subGraph)
         var initialImportance = math.matrix(structuredClone(scores)).resize([subGraph.length, 1]);
         scoresTimeline.push(scores)
-
+        
         // Only do computation if sub-graph size is greater than 1.
         if (subGraph.length !== 1) {
-            var A = getSignedAdjacencyMatrix(subGraph);
-            var r = getSemiRowNormalizedMatrices(A);
+            if (typeof subGraphRs === "undefined") {
+                var A = getSignedAdjacencyMatrix(subGraph);
+                var r = getSemiRowNormalizedMatrices(A);
+            } else {
+                var r = subGraphRs[i]
+            }
             var APos = r.APos
             var ANeg = r.ANeg
-
+            
             var rP = initialImportance
             var rN = math.matrix().resize([subGraph.length,1])
             var rMark = math.concat(rP, rN, 0)
@@ -67,20 +73,20 @@ export function runSRWR(c = 0.5, theta = 1, mu = 1, beta=0.5, gamma=0.9, epsilon
                     scoresTimeline.push(Array(subGraph.length).fill(null).map(() => 1/subGraph.length))
                     break;
                 }
-
+                
             } while (delta > epsilon);
         }
-
+        
         scoresTimeline = scoresTimeline.map(function(s) {
             var scaled = scaleValues(s, 0, 1);
             var sum = math.sum(scaled)
             s = scaled.map(v => (sum != 0) ? v/sum : 1/s.length);
             return getUnnormalizedSubGraphScores(s, subGraphSum);
         });
-
+        
         subGraphScoresTimeline.push(scoresTimeline);
     });
-
+    
     updateNodeSizes(subGraphScoresTimeline, subGraphs, delay);
 };
 
@@ -117,7 +123,7 @@ function getUnnormalizedSubGraphScores(scores, subGraphSum) {
 }
 
 // Retrieves the signed adjacency matrix for the graph consisting of "nodes".
-function getSignedAdjacencyMatrix(nodes) {
+export function getSignedAdjacencyMatrix(nodes) {
     var numNodes = nodes.length;
     var A = Array(numNodes).fill().map(()=>Array(numNodes).fill());
     var nodes = d3.selectAll(".node").filter(function(d) {return nodes.includes(d.id)})
@@ -141,7 +147,7 @@ function getSignedAdjacencyMatrix(nodes) {
 };
 
 // Retrieves the semi-row normalized matrices A+ and A- from A.
-function getSemiRowNormalizedMatrices(A) {
+export function getSemiRowNormalizedMatrices(A) {
     var D = math.sum(math.abs(A),1)
     var invD = math.inv(math.diag(D))
     var RNA = math.multiply(invD, A)
@@ -155,6 +161,11 @@ function collectDocScores() {
     d3.selectAll(".node.document")
         .each(function(doc) {
             var evidences = getNeighborsOfType(doc, "evidence");
+
+            // No rationales, keep current size.
+            if (evidences.data().length == 0) {
+                return;
+            }
 
             var newSize = 0;
             evidences
