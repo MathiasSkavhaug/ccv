@@ -76,6 +76,8 @@ export async function gridCalcInitialImportance() {
     var claims = d3.selectAll("#search-bar > option").data().map(o => o.join(","));
     
     for (var i=0; i<claims.length; i++) {        
+        console.time('claim time');
+
         resetGraph();
         setGraph("/search?claim="+encodeURIComponent(claims[i]), addAllNodes);
         await new Promise(r => setTimeout(r, 5000));
@@ -91,6 +93,8 @@ export async function gridCalcInitialImportance() {
         };
 
         saveAs(new Blob([rows.map(e => e.join(",")).join("\n")], {type: "text/plain;charset=utf-8"}), `Claim_${i}.csv`);
+
+        console.timeEnd('claim time');
     };
 
     startUpdates();
