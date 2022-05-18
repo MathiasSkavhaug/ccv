@@ -8,8 +8,9 @@ import { cardPanelInit } from "./cardPanel.js"
 import { initialState } from "./initialState.js"
 import { graphParameterPanelInit } from "./graphParameterPanel.js"
 
-import { gridCalc } from './analysis.js';
+import { gridCalc, gridCalcInitialImportance } from './analysis.js';
 window.gridCalc = gridCalc;
+window.gridCalcInitialImportance = gridCalcInitialImportance;
 
 export var originalGraph;
 

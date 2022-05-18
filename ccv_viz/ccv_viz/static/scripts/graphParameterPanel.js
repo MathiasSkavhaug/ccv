@@ -174,7 +174,7 @@ export function updateNodeSize() {
 }
 
 // Updates the size of nodes of type "type" according to the weights.
-function updateSize(type, weights) {
+export function updateSize(type, weights) {
     weights = weights.map(w => w/weights.length)
     var values = []
     d3.selectAll(".node."+type)

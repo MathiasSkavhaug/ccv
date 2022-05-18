@@ -1,6 +1,6 @@
 import { calcMajorityVote, calcWeightedVote } from "./cardPanel.js";
 import { addAllNodes, startUpdates, stopUpdates } from "./graphInit.js";
-import { updateNodeSize } from "./graphParameterPanel.js";
+import { updateNodeSize, updateSize } from "./graphParameterPanel.js";
 import { getSemiRowNormalizedMatrices, getSignedAdjacencyMatrix, runSRWR } from "./graphSRWR.js";
 import { getSubGraphs } from "./graphTraversal.js";
 import { setGraph } from "./main.js";
@@ -66,5 +66,56 @@ function* parameterCombinationGenerator() {
                 };
             };
         };  
+    };
+};
+
+// Calculates the result of the the weighted vote for many different importance weight combinations.
+export async function gridCalcInitialImportance() {
+    stopUpdates();
+
+    var claims = d3.selectAll("#search-bar > option").data().map(o => o.join(","));
+    
+    for (var i=0; i<claims.length; i++) {        
+        resetGraph();
+        setGraph("/search?claim="+encodeURIComponent(claims[i]), addAllNodes);
+        await new Promise(r => setTimeout(r, 5000));
+        
+        var rows = [["claimID", "document_citation_count", "document_influential_citation_count", "author_paper_counts", "author_citation_counts", "author_h_indices", "publish_date", "majority", "weighted"]];
+
+        var majorityVote = calcMajorityVote().toFixed(3);
+        for (let weights of importanceWeightCombinationGenerator()) {
+            updateSize("document", weights);
+            var weightedVote = calcWeightedVote().toFixed(3);
+
+            rows.push([i, weights[0], weights[1], weights[2], weights[3], weights[4], weights[5], majorityVote, weightedVote]);
+        };
+
+        saveAs(new Blob([rows.map(e => e.join(",")).join("\n")], {type: "text/plain;charset=utf-8"}), `Claim_${i}.csv`);
+    };
+
+    startUpdates();
+};
+
+// Returns the importance weight combinations to run.
+function* importanceWeightCombinationGenerator() {
+    for (var w1=0; w1<=5; w1+=1) {
+        for (var w2=0; w2<=5; w2+=1) {
+            for (var w3=0; w3<=5; w3+=1) {
+                for (var w4=0; w4<=5; w4+=1) {
+                    for (var w5=0; w5<=5; w5+=1) {
+                        for (var w6=0; w6<=5; w6+=1) {
+                            yield [
+                                (w1*0.20).toFixed(3),    
+                                (w2*0.20).toFixed(3),    
+                                (w3*0.20).toFixed(3),    
+                                (w4*0.20).toFixed(3),    
+                                (w5*0.20).toFixed(3),    
+                                (w6*0.20).toFixed(3),    
+                            ];
+                        };
+                    };
+                };
+            };
+        };
     };
 };
