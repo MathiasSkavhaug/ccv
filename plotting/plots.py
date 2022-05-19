@@ -24,6 +24,15 @@ if not os.path.exists("figures"):
 
 
 def create_df(claim_folder: str) -> pd.DataFrame:
+    """reads the csv files in claim_folder and returns the data as a dataframe.
+
+    Args:
+        claim_folder (str): claim folder.
+
+    Returns:
+        pd.DataFrame: loaded data
+    """
+
     claim_folder = os.path.join("data", claim_folder)
 
     claims = []
@@ -36,6 +45,14 @@ def create_df(claim_folder: str) -> pd.DataFrame:
 
 
 def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
+    """plots a figure and saves it.
+
+    Args:
+        df (pd.DataFrame): data used for plotting.
+        figure_suffix (str): text to append to figure name.
+        title (str): title to use in figure.
+    """
+
     seed(4)
 
     fig = plt.figure(constrained_layout=True, figsize=(30, 30))
@@ -64,6 +81,17 @@ def plot_agreement(
     titles: List[str],
     grid_size: Tuple[int, int],
 ) -> None:
+    """plots a figure and saves it.
+
+    Args:
+        df (pd.DataFrame): data used for plotting.
+        figure_suffix (str): text to append to figure name.
+        title (str): title to use in figure.
+        pred_cols (List[str]): columns to use in figure.
+        titles (List[str]): titles to use for each subfigure.
+        grid_size (Tuple[int, int]): subfigure organisation.
+    """
+
     fig = plt.figure(constrained_layout=True, figsize=(25, 25))
     axes = fig.subplots(nrows=grid_size[0], ncols=grid_size[1])
     if grid_size[0] + grid_size[1] > 2:
@@ -92,6 +120,17 @@ def plot_agreement_claimID(
     titles: List[str],
     grid_size: Tuple[int, int],
 ) -> None:
+    """plots a figure and saves it.
+
+    Args:
+        df (pd.DataFrame): data used for plotting.
+        figure_suffix (str): text to append to figure name.
+        title (str): title to use in figure.
+        pred_cols (List[str]): columns to use in figure.
+        titles (List[str]): titles to use for each subfigure.
+        grid_size (Tuple[int, int]): subfigure organisation.
+    """
+
     fig = plt.figure(constrained_layout=True, figsize=(25, 25))
     axes = fig.subplots(nrows=grid_size[0], ncols=grid_size[1])
     if grid_size[0] + grid_size[1] > 2:
@@ -114,6 +153,14 @@ def plot_agreement_claimID(
 
 
 def plot_diff_claimID(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
+    """plots a figure and saves it.
+
+    Args:
+        df (pd.DataFrame): data used for plotting.
+        figure_suffix (str): text to append to figure name.
+        title (str): title to use in figure.
+    """
+
     sns.set(rc={"figure.figsize": (25, 25)})
     sns.set(font_scale=2)
     fig = sns.boxplot(
@@ -126,6 +173,8 @@ def plot_diff_claimID(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
 
 
 def plot_gridCalc() -> None:
+    """produces the figures for gridCalc data.
+    """
     df = create_df("gridCalc")
 
     df["diff"] = df.weightedAfterAlgorithm - df.weighted
@@ -171,6 +220,8 @@ def plot_gridCalc() -> None:
 
 
 def plot_gridCalcFiltered() -> None:
+    """produces the figures for gridCalcFiltered data.
+    """
     df = create_df("gridCalcFiltered")
 
     df["diff"] = df.weightedAfterAlgorithm - df.weighted
@@ -216,6 +267,9 @@ def plot_gridCalcFiltered() -> None:
 
 
 def plot_gridCalcImportance() -> None:
+    """produces the figures for gridCalcInitialImportance data.
+    """
+
     df = create_df("gridCalcInitialImportance")
 
     df["diff"] = df.weighted - df.majority
