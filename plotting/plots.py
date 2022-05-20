@@ -60,7 +60,7 @@ def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
 
     cols = list(df.columns)
     cols = cols[cols.index("claimID") + 1 : cols.index("majority")]
-    subfigs = fig.subfigures(nrows=5, ncols=1)
+    subfigs = fig.subfigures(nrows=len(cols), ncols=1)
     for subfig in subfigs:
         claim = randrange(36)
         subfig.suptitle(f"claim {claim}", fontsize=40)
