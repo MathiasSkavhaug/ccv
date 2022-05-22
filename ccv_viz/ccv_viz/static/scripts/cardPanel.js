@@ -131,6 +131,7 @@ function populateCards() {
                     .html(nodeData.text)
 
             if (node.classed("claim")) {
+                updateWeightedVote();
                 var div = card.append("div").classed("predictions", true)
                 div.append("div").html("<span>Majority Vote:</span>"+getMajorityVote())
                 div.append("div").html("<span>Weighted Average:</span>"+weightedVote)
@@ -277,10 +278,16 @@ export function updateWeightedVote() {
         };
     } else {
         weightedVote = getWeightedVote();
-        weightedVoteAlgo = "Not run"
+        weightedVoteAlgo = "Not calculated";
         if (!d3.select(".card.claim.top").empty()) {
             d3.select(".predictions>div:nth-child(2)").html("<span>Weighted Average:</span>"+weightedVote);
             d3.select(".predictions>div:nth-child(3)").html("<span>SRWR:</span>"+weightedVoteAlgo);
         };
     };
 };
+
+// Resets the weighted predictions
+export function resetWeightedPredictions() {
+    weightedVote = "Not calculated";
+    weightedVoteAlgo = "Not calculated";
+}

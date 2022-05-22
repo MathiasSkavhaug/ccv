@@ -1,11 +1,12 @@
-import { closeCardPanel } from "./cardPanel.js";
-import { addAllNodes, removeAllNodes, ticked } from "./graphInit.js";
+import { closeCardPanel, resetWeightedPredictions } from "./cardPanel.js";
+import { removeAllNodes, ticked } from "./graphInit.js";
 import { originalGraph } from "./main.js";
 
 // Resets the graph
 export function resetGraph() {
     removeAllNodes();
     closeCardPanel();
+    resetWeightedPredictions();
 };
 
 // Resets all nodes matching "selection" to their original size.
