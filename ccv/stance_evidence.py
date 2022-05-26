@@ -67,7 +67,7 @@ def produce_files(args: argparse.Namespace) -> None:
             if not evidence_dict:  # Did not find any evidence for claim.
                 continue
 
-            # Aggeragate document information
+            # Aggregate document information
             info = {}
             info["claim"] = claims.loc[claim_num][0]
             info["docs"] = []

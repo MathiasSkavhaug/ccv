@@ -62,7 +62,7 @@ def run_retrieval(claim: str, exe_id: str, device: str) -> None:
         device (str): The device to run the model on.
     """
 
-    input = f"./data/{exe_id}/claim.jsonl"
+    input = f"./data/{exe_id}/claims.jsonl"
     with open(input, "w") as f:
         # Is file of claims.
         if os.path.exists(claim):

@@ -53,6 +53,8 @@ def scale_value(
         float: Scaled value.
     """
 
+    if omax == omin:
+        return (nmin + nmax) / 2
     return nmin + (nmax - nmin) * (value - omin) / (omax - omin)
 
 
