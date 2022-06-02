@@ -92,7 +92,10 @@ def get_results(data_path: str, claim_id: int, rationale_results: str) -> None:
 
     print(f"Results for claim {claim_id}")
 
-    print("Accuracy:", (merged.stance_predicted == merged.stance_actual).mean())
+    print(
+        "Accuracy:",
+        round((merged.stance_predicted == merged.stance_actual).mean(), 3),
+    )
 
     print(
         merged.groupby(["stance_predicted", "stance_actual"])
