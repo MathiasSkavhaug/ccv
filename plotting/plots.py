@@ -41,7 +41,11 @@ def create_df(claim_folder: str) -> pd.DataFrame:
             filename = os.path.join(claim_folder, filename)
             claims.append(pd.read_csv(filename))
 
-    return pd.concat(claims)
+    df = pd.concat(claims)
+
+    df.columns = [(c[0].upper() + c[1:]).replace("_", " ") for c in df.columns]
+
+    return df
 
 
 def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
@@ -59,7 +63,7 @@ def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
     fig.suptitle(title, fontsize=40)
 
     cols = list(df.columns)
-    cols = cols[cols.index("claimID") + 1 : cols.index("majority")]
+    cols = cols[cols.index("ClaimID") + 1 : cols.index("Majority")]
     subfigs = fig.subfigures(nrows=len(cols), ncols=1)
     for subfig in subfigs:
         claim = randrange(36)
@@ -68,7 +72,10 @@ def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
         axs = subfig.subplots(nrows=1, ncols=len(cols))
         for i, col in enumerate(cols):
             sns.boxplot(
-                x=col, y="diff", data=df[df["claimID"] == claim], ax=axs[i]
+                x=col,
+                y="Difference",
+                data=df[df["ClaimID"] == claim],
+                ax=axs[i],
             )
 
     fig.savefig(os.path.join("figures", f"diff_params_{figure_suffix}.svg"))
@@ -100,14 +107,14 @@ def plot_agreement(
         axes = [axes]
 
     cols = list(df.columns)
-    cols = cols[cols.index("claimID") + 1 : cols.index("majority")]
+    cols = cols[cols.index("ClaimID") + 1 : cols.index("Majority")]
 
     for k, ax in enumerate(axes):
         series = [df.groupby(col).mean()[pred_cols[k]] for col in cols]
         pred_diff = pd.concat(series, axis=1).dropna()
         pred_diff.columns = cols
         pred_diff.plot(title=titles[k], style="s-", ax=ax, fontsize=30)
-        ax.set_ylabel("ratio of total instances", fontsize=30)
+        ax.set_ylabel("Ratio of total instances", fontsize=30)
         ax.title.set_size(30)
 
     fig.savefig(os.path.join("figures", f"agreement_{figure_suffix}.svg"))
@@ -139,12 +146,12 @@ def plot_agreement_claimID(
         axes = [axes]
 
     cols = list(df.columns)
-    cols = cols[cols.index("claimID") + 1 : cols.index("majority")]
+    cols = cols[cols.index("ClaimID") + 1 : cols.index("Majority")]
 
     for k, ax in enumerate(axes):
-        pred_diff = df.groupby("claimID").mean()[pred_cols[k]]
+        pred_diff = df.groupby("ClaimID").mean()[pred_cols[k]]
         pred_diff.plot(title=titles[k], style="s-", ax=ax, fontsize=30)
-        ax.set_ylabel("ratio of claimID instances", fontsize=30)
+        ax.set_ylabel("Ratio of ClaimID instances", fontsize=30)
         ax.title.set_size(30)
 
     fig.savefig(
@@ -164,7 +171,7 @@ def plot_diff_claimID(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
     sns.set(rc={"figure.figsize": (25, 25)})
     sns.set(font_scale=2)
     fig = sns.boxplot(
-        x="claimID", y="diff", data=df, ax=plt.figure().add_subplot()
+        x="ClaimID", y="Difference", data=df, ax=plt.figure().add_subplot()
     )
     fig.set_title(title)
     fig.get_figure().savefig(
@@ -177,13 +184,13 @@ def plot_gridCalc() -> None:
     """
     df = create_df("gridCalc")
 
-    df["diff"] = df.weightedAfterAlgorithm - df.weighted
-    diff_text = "diff = weighted average after algorithm - weighted average before algorithm"
+    df["Difference"] = df.WeightedAfterAlgorithm - df.Weighted
+    diff_text = "Difference = Weighted average after algorithm - Weighted average before algorithm"
     figure_suffix = "algo"
 
-    df["prediction_m"] = (df.majority > 0).astype(int)
-    df["prediction_w"] = (df.weighted > 0).astype(int)
-    df["prediction_waa"] = (df.weightedAfterAlgorithm > 0).astype(int)
+    df["prediction_m"] = (df.Majority > 0).astype(int)
+    df["prediction_w"] = (df.Weighted > 0).astype(int)
+    df["prediction_waa"] = (df.WeightedAfterAlgorithm > 0).astype(int)
     df["prediction_1_1_0"] = (
         (df.prediction_m == df.prediction_w)
         & (df.prediction_w != df.prediction_waa)
@@ -207,10 +214,10 @@ def plot_gridCalc() -> None:
         "prediction_1_1_1",
     ]
     titles = [
-        "majority = weighted ≠ weightedAfterAlgorithm",
-        "majority = weightedAfterAlgorithm ≠ weighted",
-        "majority ≠ weighted = weightedAfterAlgorithm",
-        "majority = weighted = weightedAfterAlgorithm",
+        "Majority = Weighted ≠ WeightedAfterAlgorithm",
+        "Majority = WeightedAfterAlgorithm ≠ Weighted",
+        "Majority ≠ Weighted = WeightedAfterAlgorithm",
+        "Majority = Weighted = WeightedAfterAlgorithm",
     ]
 
     plot_diff_params(df, figure_suffix, diff_text)
@@ -224,13 +231,13 @@ def plot_gridCalcFiltered() -> None:
     """
     df = create_df("gridCalcFiltered")
 
-    df["diff"] = df.weightedAfterAlgorithm - df.weighted
-    diff_text = "diff = weighted average after algorithm - weighted average before algorithm"
+    df["Difference"] = df.WeightedAfterAlgorithm - df.Weighted
+    diff_text = "Difference = Weighted average after algorithm - Weighted average before algorithm"
     figure_suffix = "algo_filtered"
 
-    df["prediction_m"] = (df.majority > 0).astype(int)
-    df["prediction_w"] = (df.weighted > 0).astype(int)
-    df["prediction_waa"] = (df.weightedAfterAlgorithm > 0).astype(int)
+    df["prediction_m"] = (df.Majority > 0).astype(int)
+    df["prediction_w"] = (df.Weighted > 0).astype(int)
+    df["prediction_waa"] = (df.WeightedAfterAlgorithm > 0).astype(int)
     df["prediction_1_1_0"] = (
         (df.prediction_m == df.prediction_w)
         & (df.prediction_w != df.prediction_waa)
@@ -254,10 +261,10 @@ def plot_gridCalcFiltered() -> None:
         "prediction_1_1_1",
     ]
     titles = [
-        "majority = weighted ≠ weightedAfterAlgorithm",
-        "majority = weightedAfterAlgorithm ≠ weighted",
-        "majority ≠ weighted = weightedAfterAlgorithm",
-        "majority = weighted = weightedAfterAlgorithm",
+        "Majority = Weighted ≠ WeightedAfterAlgorithm",
+        "Majority = WeightedAfterAlgorithm ≠ Weighted",
+        "Majority ≠ Weighted = WeightedAfterAlgorithm",
+        "Majority = Weighted = WeightedAfterAlgorithm",
     ]
 
     plot_diff_params(df, figure_suffix, diff_text)
@@ -272,15 +279,15 @@ def plot_gridCalcImportance() -> None:
 
     df = create_df("gridCalcInitialImportance")
 
-    df["diff"] = df.weighted - df.majority
-    diff_text = "diff = weighted average - majority vote"
+    df["Difference"] = df.Weighted - df.Majority
+    diff_text = "Difference = Weighted average - Majority vote"
     figure_suffix = "importance"
 
-    df["prediction_m"] = (df.majority > 0).astype(int)
-    df["prediction_w"] = (df.weighted > 0).astype(int)
+    df["prediction_m"] = (df.Majority > 0).astype(int)
+    df["prediction_w"] = (df.Weighted > 0).astype(int)
     df["prediction_1_0"] = (df.prediction_m != df.prediction_w).astype(int)
     pred_cols = ["prediction_1_0"]
-    titles = ["majority ≠ weighted"]
+    titles = ["Majority ≠ Weighted"]
 
     plot_diff_params(df, figure_suffix, diff_text)
     plot_agreement(df, figure_suffix, pred_cols, titles, (1, 1))
