@@ -73,7 +73,7 @@ from graph import create_graph
 import json
 import pandas as pd
 from tqdm import tqdm
-from typing import Dict, Any
+from typing import Dict, Any, List
 from utility import get_request
 
 
@@ -248,17 +248,18 @@ def get_aut_links(dinfo: Dict[str, Any]) -> Dict[str, Any]:
 
 def get_evi_links(
     evidence_relations: pd.DataFrame, emap: Dict[str, Any]
-) -> Dict[str, Any]:
+) -> Dict[str, List[Dict[str, Any]]]:
     """Loads the evidence stances from the given datastructures.
 
     Args:
         evidence_relations (pd.DataFrame): Result from longchecker
             ran on the output from stance_evidence.py
-        emap (Dict[str, Any]): Mapping claim ids from output o
+        emap (Dict[str, Any]): Mapping claim ids from output of
             stance_evidence.py to various information.
 
     Returns:
-        Dict[str, Any]: Dict containing the evidence stances for each claim.
+        Dict[str, List[Dict[str, Any]]]: Dictionary where a key is a claim_id
+            and its value is a list of evidence links for that claim.
     """
 
     evi_links = {}
