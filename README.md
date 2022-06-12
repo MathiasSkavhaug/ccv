@@ -2,7 +2,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ### Setup
-First step after cloning the repository is to run the [setup.sh](scripts/setup.sh) script. It sets up the necessary environment, starts indexing the [CORD-19](https://github.com/allenai/cord19) dataset, downloads model checkpoints, and other necessary setup steps.
+First step after cloning the repository is to run the [setup.sh](scripts/setup.sh) script. It sets up the necessary environment, starts indexing the [CORD-19](https://github.com/allenai/cord19) dataset, downloads model checkpoints, and other necessary setup steps. Make sure that you have Java 11 and Maven 3.3+, as it is required to build Anserini.
 
 ### Graph
 In order to generate the graph structure used for visualisation, run the [run_query.py](ccv/run_query.py) script.
