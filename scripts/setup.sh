@@ -5,16 +5,13 @@
 # downloads model checkpoints,
 # and does other necessary setup steps.
 
-sudo apt update
-sudo apt install maven
-
 conda env create -f environment.yml
 conda activate ccv
 
 git clone https://github.com/castorini/anserini.git --recurse-submodules
 cd anserini/
-git checkout 6e35e65d18fa6a80975aceb9fc5ba2742b8070db # make sure repository is correct version
-mvn clean package appassembler:assemble
+git checkout f42bbbe06e43d8e1ea58a2789f6dc80b0de6612b --recurse-submodules # make sure repository is correct version
+mvn clean package appassembler:assemble -Dmaven.test.skip=true
 
 python src/main/python/trec-covid/index_cord19.py --date 2022-02-07 --download --index
 
