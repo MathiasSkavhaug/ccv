@@ -8,6 +8,7 @@ The setup uses the `2022-02-07` version of the CORD-19 dataset, to user another 
 ```
 python src/main/python/trec-covid/index_cord19.py --date 2022-02-07 --download --index
 ```
+All scripts are designed to be called from the top directory.
 
 ### Graph
 In order to generate the graph structure used for visualisation, run the [run_query.py](ccv/run_query.py) script.
