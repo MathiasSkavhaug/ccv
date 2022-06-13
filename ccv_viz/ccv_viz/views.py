@@ -19,4 +19,14 @@ def search():
             graph = json.loads(line)
             if graph["nodes"][0]["text"] == claim:
                 return graph
-    return {}
+    return {
+        "nodes": [
+            {
+                "id": "Claim",
+                "type": "claim",
+                "text": claim + " " + "[No relevant documents found].",
+                "size": 0,
+            }
+        ],
+        "links": [],
+    }

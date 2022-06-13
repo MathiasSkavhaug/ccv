@@ -29,17 +29,6 @@ export function graphInit() {
             .attr("height", height)
             .attr("id", "viz")
 
-    // Did not find relevant documents for the claim.
-    if (Object.keys(currentGraph).length === 0) {
-        viz
-            .append("text")
-            .text("No relevant documents found for the claim.")
-            .attr("id", "documents-not-found")
-            .attr("x", width / 2)
-            .attr("y", height / 2)
-        return
-    }
-
     if (!d3.select("#option-author").classed("option-selected")) {
         currentGraph.links = currentGraph.links.filter(function(d) {return d.label != "author"})
         currentGraph.nodes = currentGraph.nodes.filter(function(d) {return d.type != "author"})
