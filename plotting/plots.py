@@ -67,7 +67,7 @@ def plot_diff_params(df: pd.DataFrame, figure_suffix: str, title: str) -> None:
     subfigs = fig.subfigures(nrows=len(cols), ncols=1)
     for subfig in subfigs:
         claim = randrange(36)
-        subfig.suptitle(f"claim {claim}", fontsize=40)
+        subfig.suptitle(f"Claim {claim}", fontsize=40)
 
         axs = subfig.subplots(nrows=1, ncols=len(cols))
         for i, col in enumerate(cols):
