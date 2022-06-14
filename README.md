@@ -1,4 +1,4 @@
-# COVID-19 scientific claim verification (Master's Thesis)
+# Interactive Graph-Based Visualisation and Veracity Prediction of Scientific COVID-19 Claims (Master's Thesis)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This repository contain code for a system for visualising relevant information to help users determine the veracity of COVID-19 claims. It consists of relevant abstract retrieval, stance detection, rationale extraction, inter-rationale stance detection and additional metadata extraction. Furthermore, it also contains prediction methods to assist in determining the veracity of a claim. One of which is a graph algorithm that uses a measure of document importance and how the documents' rationales agree or disagree with each other to make a prediction. This is done in a way as to allow users to adjust certain parameters based on what they deem important when deciding the veracity of a claim. 
